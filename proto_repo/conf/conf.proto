@@ -1,0 +1,20 @@
+syntax = "proto3";
+package conf;
+
+option go_package = "/conf;conf";
+
+message LogConf {
+    string level = 1;
+    string format = 2;
+    string director = 3;
+    string encode_level = 4;
+    string stacktrace_key = 5;
+    int32 max_age = 6;
+    bool show_line = 7;
+    bool log_in_console = 8;
+    int32 max_size = 9;
+    bool compress = 10;
+    int32 max_backups = 11;
+
+}
+
