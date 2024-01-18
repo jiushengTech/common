@@ -1,4 +1,4 @@
-package main
+package log
 
 import (
 	"common/conf"
@@ -87,8 +87,4 @@ func Fatalf(format string, a ...interface{}) {
 
 func Fatalw(keyvals ...interface{}) {
 	log.Fatalw(keyvals...)
-}
-
-func main() {
-	Info("hello world")
 }
