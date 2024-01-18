@@ -1,10 +1,10 @@
 package log
 
 import (
-	"common/conf"
-	"common/log/zap"
 	"context"
 	klog "github.com/go-kratos/kratos/v2/log"
+	"github.com/jiushengTech/common/conf"
+	"github.com/jiushengTech/common/log/zap"
 	"gopkg.in/yaml.v3"
 	"os"
 )

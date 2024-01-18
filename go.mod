@@ -1,4 +1,4 @@
-module common
+module github.com/jiushengTech/common
 
 go 1.20
 

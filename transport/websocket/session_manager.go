@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"common/log"
+	"github.com/jiushengTech/common/log"
 	"sync"
 )
 

@@ -1,9 +1,9 @@
 package zap
 
 import (
-	"common/conf"
 	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
+	"github.com/jiushengTech/common/conf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"

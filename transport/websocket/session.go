@@ -1,10 +1,10 @@
 package websocket
 
 import (
-	"common/log"
 	"context"
 	"github.com/google/uuid"
 	ws "github.com/gorilla/websocket"
+	"github.com/jiushengTech/common/log"
 )
 
 var channelBufSize = 256

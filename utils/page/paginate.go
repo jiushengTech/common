@@ -1,7 +1,7 @@
 package page
 
 import (
-	//"github.com/samsaralc/proto_repo/pb/common/page"
+	//"github.com/samsaralc/proto_repo/pb/github.com/jiushengTech/common/page"
 	"google.golang.org/protobuf/types/known/anypb"
 	"gorm.io/gorm"
 	"math"
