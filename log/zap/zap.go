@@ -1,7 +1,6 @@
 package zap
 
 import (
-	pb "common/pb"
 	"fmt"
 	"github.com/go-kratos/kratos/v2/log"
 	"go.uber.org/zap"
@@ -15,12 +14,26 @@ import (
 
 var _ log.Logger = (*ZapLogger)(nil)
 
+type Conf struct {
+	Level         string `protobuf:"bytes,1,opt,name=level,proto3" json:"level,omitempty"`
+	Format        string `protobuf:"bytes,2,opt,name=format,proto3" json:"format,omitempty"`
+	Director      string `protobuf:"bytes,3,opt,name=director,proto3" json:"director,omitempty"`
+	EncodeLevel   string `protobuf:"bytes,4,opt,name=encodeLevel,proto3" json:"encodeLevel,omitempty"`
+	StacktraceKey string `protobuf:"bytes,5,opt,name=stacktraceKey,proto3" json:"stacktraceKey,omitempty"`
+	MaxAge        int32  `protobuf:"varint,6,opt,name=maxAge,proto3" json:"maxAge,omitempty"`
+	ShowLine      bool   `protobuf:"varint,7,opt,name=showLine,proto3" json:"showLine,omitempty"`
+	LogInConsole  bool   `protobuf:"varint,8,opt,name=logInConsole,proto3" json:"logInConsole,omitempty"`
+	MaxSize       int32  `protobuf:"varint,9,opt,name=maxSize,proto3" json:"maxSize,omitempty"`
+	Compress      bool   `protobuf:"varint,10,opt,name=compress,proto3" json:"compress,omitempty"`
+	MaxBackups    int32  `protobuf:"varint,11,opt,name=max_backups,json=maxBackups,proto3" json:"max_backups,omitempty"`
+}
+
 type ZapLogger struct {
 	log  *zap.Logger
 	Sync func() error
 }
 
-func NewZapLogger(c *pb.LogConf) *ZapLogger {
+func NewZapLogger(c *Conf) *ZapLogger {
 	logger := ZapLogger{}
 	cores := logger.GetZapCores(c)
 	zapLogger := zap.New(zapcore.NewTee(cores...))
@@ -29,7 +42,7 @@ func NewZapLogger(c *pb.LogConf) *ZapLogger {
 
 // GetEncoder 获取 zapcore.Encoder
 // Author Samsaralc
-func (z *ZapLogger) GetEncoder(c *pb.LogConf) zapcore.Encoder {
+func (z *ZapLogger) GetEncoder(c *Conf) zapcore.Encoder {
 
 	if c.Format == "json" {
 		return zapcore.NewJSONEncoder(z.GetEncoderConfig(c))
@@ -39,7 +52,7 @@ func (z *ZapLogger) GetEncoder(c *pb.LogConf) zapcore.Encoder {
 
 // GetEncoderConfig 获取zapcore.EncoderConfig
 // Author Samsaralc
-func (z *ZapLogger) GetEncoderConfig(c *pb.LogConf) zapcore.EncoderConfig {
+func (z *ZapLogger) GetEncoderConfig(c *Conf) zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
 		MessageKey:     "message",
 		LevelKey:       "level",
@@ -56,7 +69,7 @@ func (z *ZapLogger) GetEncoderConfig(c *pb.LogConf) zapcore.EncoderConfig {
 }
 
 // GetEncoderCore 获取Encoder的 zapcore.Core
-func (z *ZapLogger) GetEncoderCore(c *pb.LogConf, l zapcore.Level, level zap.LevelEnablerFunc) zapcore.Core {
+func (z *ZapLogger) GetEncoderCore(c *Conf, l zapcore.Level, level zap.LevelEnablerFunc) zapcore.Core {
 	writer := z.GetWriteSyncer(c, l.String()) // 日志分割
 	return zapcore.NewCore(z.GetEncoder(c), writer, level)
 }
@@ -67,7 +80,7 @@ func (z *ZapLogger) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArra
 }
 
 // GetZapCores 根据配置文件的Level获取 []zapcore.Core
-func (z *ZapLogger) GetZapCores(c *pb.LogConf) []zapcore.Core {
+func (z *ZapLogger) GetZapCores(c *Conf) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
 	for level := TransportLevel(c.Level); level <= zapcore.FatalLevel; level++ {
 		cores = append(cores, z.GetEncoderCore(c, level, GetLevelPriority(level)))
@@ -76,7 +89,7 @@ func (z *ZapLogger) GetZapCores(c *pb.LogConf) []zapcore.Core {
 }
 
 // GetWriteSyncer 创建日志写入器并设置最大文件大小
-func (z *ZapLogger) GetWriteSyncer(c *pb.LogConf, level string) zapcore.WriteSyncer {
+func (z *ZapLogger) GetWriteSyncer(c *Conf, level string) zapcore.WriteSyncer {
 	logPath := filepath.Join(c.Director, time.Now().Format("2006-01-02"))
 	err := os.MkdirAll(logPath, os.ModePerm)
 	if err != nil {
