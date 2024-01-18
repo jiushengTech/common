@@ -1,23 +1,21 @@
 package websocket
 
 import (
-	"base-service/internal/global"
 	"context"
 	"crypto/tls"
 	"encoding/json"
 	"errors"
+	"github.com/tx7do/kratos-transport/broker"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 
+	"common/log"
 	"github.com/go-kratos/kratos/v2/encoding"
 	"github.com/go-kratos/kratos/v2/transport"
-
 	ws "github.com/gorilla/websocket"
-
-	"github.com/tx7do/kratos-transport/broker"
 )
 
 type Binder func() Any
@@ -46,10 +44,9 @@ type Server struct {
 
 	network     string
 	address     string
-	path        []string
 	strictSlash bool
-
-	timeout time.Duration
+	path        string
+	timeout     time.Duration
 
 	err   error
 	codec encoding.Codec
@@ -66,12 +63,11 @@ type Server struct {
 
 func NewServer(opts ...ServerOption) *Server {
 	srv := &Server{
-		network:     "tcp",
-		address:     ":0",
-		timeout:     1 * time.Second,
-		strictSlash: true,
-		path:        []string{"/"},
-
+		network:         "tcp",
+		address:         ":0",
+		timeout:         1 * time.Second,
+		strictSlash:     true,
+		path:            "/",
 		messageHandlers: make(MessageHandlerMap),
 
 		sessionMgr: NewSessionManager(),
@@ -102,9 +98,7 @@ func (s *Server) init(opts ...ServerOption) {
 	s.Server = &http.Server{
 		TLSConfig: s.tlsConf,
 	}
-	for _, v := range s.path {
-		http.HandleFunc(v, s.wsHandler)
-	}
+	http.HandleFunc(s.path, s.wsHandler)
 }
 
 func (s *Server) SessionCount() int {
@@ -128,7 +122,7 @@ func RegisterServerMessageHandler[T any](srv *Server, messageType MessageType, h
 			case *T:
 				return handler(sessionId, t)
 			default:
-				global.LOG.WithContext(context.Background()).Error("invalid payload struct type:", t)
+				log.WithContext(context.Background()).Error("invalid payload struct type:", t)
 				return errors.New("invalid payload struct type")
 			}
 		},
@@ -182,14 +176,14 @@ func (s *Server) marshalMessage(messageType MessageType, message MessagePayload)
 func (s *Server) SendMessage(sessionId SessionID, messageType MessageType, message MessagePayload) {
 	c, ok := s.sessionMgr.Get(sessionId)
 	if !ok {
-		global.LOG.WithContext(context.Background()).Error("session not found:", sessionId)
+		log.WithContext(context.Background()).Error("session not found:", sessionId)
 		return
 	}
 	switch s.payloadType {
 	case PayloadTypeBinary:
 		buf, err := s.marshalMessage(messageType, message)
 		if err != nil {
-			global.LOG.WithContext(context.Background()).Error("marshal message exception:", err)
+			log.WithContext(context.Background()).Error("marshal message exception:", err)
 			return
 		}
 		c.SendMessage(buf)
@@ -198,7 +192,7 @@ func (s *Server) SendMessage(sessionId SessionID, messageType MessageType, messa
 	case PayloadTypeText:
 		buf, err := s.codec.Marshal(message)
 		if err != nil {
-			global.LOG.WithContext(context.Background()).Error("marshal message exception:", err)
+			log.WithContext(context.Background()).Error("marshal message exception:", err)
 			return
 		}
 		c.SendMessage(buf)
@@ -210,7 +204,7 @@ func (s *Server) SendMessage(sessionId SessionID, messageType MessageType, messa
 func (s *Server) Broadcast(messageType MessageType, message MessagePayload) {
 	buf, err := s.marshalMessage(messageType, message)
 	if err != nil {
-		global.LOG.WithContext(context.Background()).Error(" marshal message exception:", err)
+		log.WithContext(context.Background()).Error(" marshal message exception:", err)
 		return
 	}
 	s.sessionMgr.Range(func(session *Session) {
@@ -226,14 +220,14 @@ func (s *Server) unmarshalMessage(buf []byte) (*HandlerData, MessagePayload, err
 	case PayloadTypeBinary:
 		var msg BinaryMessage
 		if err := msg.Unmarshal(buf); err != nil {
-			global.LOG.WithContext(context.Background()).Errorf("decode message exception: %s", err)
+			log.WithContext(context.Background()).Errorf("decode message exception: %s", err)
 			return nil, nil, err
 		}
 
 		var ok bool
 		handler, ok = s.messageHandlers[msg.Type]
 		if !ok {
-			global.LOG.WithContext(context.Background()).Error("message handler not found:", msg.Type)
+			log.WithContext(context.Background()).Error("message handler not found:", msg.Type)
 			return nil, nil, errors.New("message handler not found")
 		}
 
@@ -244,7 +238,7 @@ func (s *Server) unmarshalMessage(buf []byte) (*HandlerData, MessagePayload, err
 		}
 
 		if err := broker.Unmarshal(s.codec, msg.Body, &payload); err != nil {
-			global.LOG.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
+			log.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
 			return nil, nil, err
 		}
 		//LogDebug(string(msg.Body))
@@ -252,14 +246,14 @@ func (s *Server) unmarshalMessage(buf []byte) (*HandlerData, MessagePayload, err
 	case PayloadTypeText:
 		var msg TextMessage
 		if err := msg.Unmarshal(buf); err != nil {
-			global.LOG.WithContext(context.Background()).Errorf("decode message exception: %s", err)
+			log.WithContext(context.Background()).Errorf("decode message exception: %s", err)
 			return nil, nil, err
 		}
 
 		var ok bool
 		handler, ok = s.messageHandlers[msg.Type]
 		if !ok {
-			global.LOG.WithContext(context.Background()).Error("message handler not found:", msg.Type)
+			log.WithContext(context.Background()).Error("message handler not found:", msg.Type)
 			return nil, nil, errors.New("message handler not found")
 		}
 
@@ -270,7 +264,7 @@ func (s *Server) unmarshalMessage(buf []byte) (*HandlerData, MessagePayload, err
 		}
 		//如果结构体无法映射，将会导致payload为map[string]interface{}类型
 		if err := broker.Unmarshal(s.codec, msg.Body, &payload); err != nil {
-			global.LOG.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
+			log.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
 			return nil, nil, err
 		}
 
@@ -285,13 +279,12 @@ func (s *Server) messageHandler(sessionId SessionID, buf []byte) error {
 	var payload MessagePayload
 
 	if handler, payload, err = s.unmarshalMessage(buf); err != nil {
-		global.LOG.WithContext(context.Background()).Errorf("unmarshal message failed: %s", err)
+		log.WithContext(context.Background()).Errorf("unmarshal message failed: %s", err)
 		return err
 	}
-	//LogDebug(payload)
 
 	if err = handler.Handler(sessionId, payload); err != nil {
-		global.LOG.WithContext(context.Background()).Errorf("message handler failed: %s", err)
+		log.WithContext(context.Background()).Errorf("message handler failed: %s", err)
 		return err
 	}
 
@@ -301,10 +294,10 @@ func (s *Server) messageHandler(sessionId SessionID, buf []byte) error {
 func (s *Server) wsHandler(res http.ResponseWriter, req *http.Request) {
 	conn, err := s.upgrader.Upgrade(res, req, nil)
 	if err != nil {
-		global.LOG.WithContext(context.Background()).Error("upgrade exception:", err)
+		log.WithContext(context.Background()).Error("upgrade exception:", err)
 		return
 	}
-	session := NewSession(conn, s, req.URL.Path)
+	session := NewSession(conn, s)
 	session.server.register <- session
 
 	session.Listen()
@@ -361,7 +354,7 @@ func (s *Server) Start(ctx context.Context) error {
 	s.BaseContext = func(net.Listener) context.Context {
 		return ctx
 	}
-	global.LOG.WithContext(ctx).Infof("[websocket] server listening on: %s", s.lis.Addr().String())
+	log.WithContext(ctx).Infof("[websocket] server listening on: %s", s.lis.Addr().String())
 
 	go s.run()
 
@@ -378,6 +371,6 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	global.LOG.WithContext(ctx).Infof("[websocket] server stopping")
+	log.WithContext(ctx).Infof("[websocket] server stopping")
 	return s.Shutdown(ctx)
 }

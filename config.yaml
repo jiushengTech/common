@@ -1,0 +1,12 @@
+zapConf:
+  level: info
+  format: console
+  director: logs/
+  encodeLevel: LowercaseColorLevelEncoder
+  stacktraceKey: common
+  maxAge: 7
+  showLine: true
+  logInConsole: true
+  maxSize: 10
+  compress: false
+  maxBackups: 10

@@ -1,11 +1,10 @@
 package websocket
 
 import (
-	"base-service/internal/global"
+	"common/log"
 	"context"
 	"github.com/google/uuid"
 	ws "github.com/gorilla/websocket"
-	"strings"
 )
 
 var channelBufSize = 256
@@ -19,20 +18,13 @@ type Session struct {
 	server *Server
 }
 
-func NewSession(conn *ws.Conn, server *Server, path string) *Session {
+func NewSession(conn *ws.Conn, server *Server) *Session {
 	if conn == nil {
 		panic("conn cannot be nil")
 	}
-
 	uuId, _ := uuid.NewUUID()
-	sessionID := path + "-" + uuId.String()
-	//global.REDIS.
-	err := global.REDIS.Set(context.Background(), path, sessionID, 0).Err()
-	if err != nil {
-		global.LOG.Errorf("redis setEx error: %v", err)
-	}
 	c := &Session{
-		id:     SessionID(sessionID),
+		id:     SessionID(uuId.String()),
 		conn:   conn,
 		send:   make(chan []byte, channelBufSize),
 		server: server,
@@ -56,18 +48,6 @@ func (c *Session) SendMessage(message []byte) {
 }
 
 func (c *Session) Close() {
-	str := string(c.SessionID())
-	var key string
-	// 使用 strings.Index 函数查找第一个 "-" 的索引
-	index := strings.Index(str, "-")
-	if index == -1 {
-		// 如果字符串中不存在 "-"，则直接使用原始字符串
-		key = str
-	} else {
-		// 使用 strings.SplitN 函数将字符串按照 "-" 分割成多个子字符串
-		key = strings.SplitN(str, "-", 2)[0]
-	}
-	global.REDIS.Del(context.Background(), key)
 	c.server.unregister <- c
 	c.closeConnect()
 }
@@ -78,10 +58,9 @@ func (c *Session) Listen() {
 }
 
 func (c *Session) closeConnect() {
-	//LogInfo(c.SessionID(), " connection closed")
 	if c.conn != nil {
 		if err := c.conn.Close(); err != nil {
-			global.LOG.WithContext(context.Background()).Errorf("disconnect error: %s", err.Error())
+			log.WithContext(context.Background()).Errorf("disconnect error: %s", err.Error())
 		}
 		c.conn = nil
 	}
@@ -125,14 +104,14 @@ func (c *Session) writePump() {
 			switch c.server.payloadType {
 			case PayloadTypeBinary:
 				if err = c.sendBinaryMessage(msg); err != nil {
-					global.LOG.WithContext(context.Background()).Error("write binary message error: ", err)
+					log.WithContext(context.Background()).Error("write binary message error: ", err)
 					return
 				}
 				break
 
 			case PayloadTypeText:
 				if err = c.sendTextMessage(string(msg)); err != nil {
-					global.LOG.WithContext(context.Background()).Error("write text message error: ", err)
+					log.WithContext(context.Background()).Error("write text message error: ", err)
 					return
 				}
 				break
@@ -153,7 +132,7 @@ func (c *Session) readPump() {
 		messageType, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if ws.IsUnexpectedCloseError(err, ws.CloseNormalClosure, ws.CloseGoingAway, ws.CloseAbnormalClosure) {
-				global.LOG.WithContext(context.Background()).Errorf("read message error: %v", err)
+				log.WithContext(context.Background()).Errorf("read message error: %v", err)
 			}
 			return
 		}
@@ -172,7 +151,7 @@ func (c *Session) readPump() {
 
 		case ws.PingMessage:
 			if err = c.sendPongMessage(""); err != nil {
-				global.LOG.WithContext(context.Background()).Error("write pong message error: ", err)
+				log.WithContext(context.Background()).Error("write pong message error: ", err)
 				return
 			}
 			break

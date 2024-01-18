@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"base-service/internal/global"
+	"common/log"
 	"sync"
 )
 
@@ -55,7 +55,7 @@ func (s *SessionManager) Add(c *Session) {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 
-	global.LOG.Info("[websocket] add session: ", c.SessionID())
+	log.Info("[websocket] add session: ", c.SessionID())
 	s.sessions[c.SessionID()] = c
 
 	if s.connectHandler != nil {
@@ -68,7 +68,7 @@ func (s *SessionManager) Remove(c *Session) {
 	defer s.mtx.Unlock()
 	for k, v := range s.sessions {
 		if c == v {
-			global.LOG.Info("[websocket] remove session: ", c.SessionID())
+			log.Info("[websocket] remove session: ", c.SessionID())
 			if s.connectHandler != nil {
 				s.connectHandler(c.SessionID(), false)
 			}
