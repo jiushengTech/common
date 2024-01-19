@@ -11,11 +11,11 @@ import (
 )
 
 var (
-	_ transport.Server     = (*RadarServer)(nil)
-	_ transport.Endpointer = (*RadarServer)(nil)
+	_ transport.Server     = (*Server)(nil)
+	_ transport.Endpointer = (*Server)(nil)
 )
 
-type RadarServer struct {
+type Server struct {
 	UdpConn    *net.UDPConn
 	err        error
 	network    string
@@ -24,8 +24,8 @@ type RadarServer struct {
 	timeout    time.Duration
 }
 
-func NewServer(opts ...ServerOption) *RadarServer {
-	srv := &RadarServer{
+func NewServer(opts ...ServerOption) *Server {
+	srv := &Server{
 		network: "udp",
 		address: "0.0.0.0:30003",
 		timeout: 1 * time.Second,
@@ -34,13 +34,13 @@ func NewServer(opts ...ServerOption) *RadarServer {
 	return srv
 }
 
-func (s *RadarServer) init(opts ...ServerOption) {
+func (s *Server) init(opts ...ServerOption) {
 	for _, o := range opts {
 		o(s)
 	}
 }
 
-func (s *RadarServer) listen() error {
+func (s *Server) listen() error {
 	if s.address == "" {
 		return errors.New("socket初始化失败, address为空")
 	}
@@ -56,7 +56,7 @@ func (s *RadarServer) listen() error {
 	return err
 }
 
-func (s *RadarServer) Endpoint() (*url.URL, error) {
+func (s *Server) Endpoint() (*url.URL, error) {
 	addr := s.address
 	prefix := "socket://"
 	addr = prefix + addr
@@ -65,7 +65,7 @@ func (s *RadarServer) Endpoint() (*url.URL, error) {
 	return endpoint, nil
 }
 
-func (s *RadarServer) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	err := s.listen()
 	if err != nil {
 		return err
@@ -73,11 +73,11 @@ func (s *RadarServer) Start(ctx context.Context) error {
 	return err
 }
 
-func (s *RadarServer) Stop(ctx context.Context) error {
+func (s *Server) Stop(ctx context.Context) error {
 	return s.UdpConn.Close()
 }
 
-func (s *RadarServer) Send(data []byte) (int, error) {
+func (s *Server) Send(data []byte) (int, error) {
 	targetAddr, err := net.ResolveUDPAddr(s.network, s.targetAddr)
 	if err != nil {
 		return 0, err
