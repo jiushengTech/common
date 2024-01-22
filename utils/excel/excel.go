@@ -1,4 +1,4 @@
-// excel.go
+// Package excel excel.go
 package excel
 
 import (

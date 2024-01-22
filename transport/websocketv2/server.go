@@ -13,7 +13,7 @@ var (
 	_ transport.Endpointer = (*WebSocketServer)(nil)
 )
 
-// WebSocketServer 是 WebSocket 客户端结构体
+// WebSocketServer 是 WebSocket 服务器结构体
 type WebSocketServer struct {
 	addr     string
 	conn     *websocket.Conn
@@ -21,7 +21,7 @@ type WebSocketServer struct {
 	upgrader *websocket.Upgrader
 }
 
-// NewWebSocketServer 创建新的 WebSocket 客户端
+// NewWebSocketServer 创建新的 WebSocket 服务器
 func NewWebSocketServer(options ...Option) *WebSocketServer {
 	server := &WebSocketServer{
 		addr: "0.0.0.0",
@@ -40,16 +40,18 @@ func NewWebSocketServer(options ...Option) *WebSocketServer {
 	return server
 }
 
-// Stop  关闭 WebSocket 连接
+// Stop 关闭 WebSocket 连接
 func (s *WebSocketServer) Stop(ctx context.Context) error {
 	return s.conn.Close()
 }
 
+// Start 启动 WebSocket 服务器
 func (s *WebSocketServer) Start(ctx context.Context) error {
 	http.HandleFunc(s.url, s.wsHandler)
-	return nil
+	return http.ListenAndServe(s.addr, nil)
 }
 
+// Endpoint 返回 WebSocket 服务器的地址
 func (s *WebSocketServer) Endpoint() (*url.URL, error) {
 	prefix := "websocket://"
 	addr := prefix + s.addr
@@ -57,6 +59,7 @@ func (s *WebSocketServer) Endpoint() (*url.URL, error) {
 	return endpoint, err
 }
 
+// WsHandler 处理 WebSocket 连接
 func (s *WebSocketServer) wsHandler(res http.ResponseWriter, req *http.Request) {
 	// 连接 WebSocket
 	conn, err := s.upgrader.Upgrade(res, req, nil)
@@ -64,5 +67,4 @@ func (s *WebSocketServer) wsHandler(res http.ResponseWriter, req *http.Request) 
 		return
 	}
 	s.conn = conn
-
 }

@@ -27,7 +27,7 @@ Thumbs.db
 *.cert
 *.key
 *.log
-logs
+logs/
 bin/
 
 # Develop tools

@@ -5,19 +5,24 @@ import (
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/jiushengTech/common/conf"
 	"github.com/jiushengTech/common/log/zap"
+	"github.com/jiushengTech/common/utils/file"
 	"gopkg.in/yaml.v3"
 	"os"
+	"path/filepath"
 )
 
 var log *klog.Helper
 
 func init() {
-	data, err := os.ReadFile("config.yaml")
+	// 构建文件路径
+	path := file.CurrentPath()
+	filePath := filepath.Join(path, "config.yaml")
+	readFile, err := os.ReadFile(filePath)
 	if err != nil {
 		panic(err)
 	}
 	var config conf.Config
-	err = yaml.Unmarshal(data, &config)
+	err = yaml.Unmarshal(readFile, &config)
 	if err != nil {
 		panic(err)
 	}
