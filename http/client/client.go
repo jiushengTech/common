@@ -53,6 +53,21 @@ func NewHttpClient(opts ...Option) *HttpClient {
 //	return respBody, err
 //}
 
+func (c *HttpClient) GetWithResp(url string, t any) (err error) {
+	res, err := c.Get(url)
+	if err != nil {
+		log.Errorf("Error sending request: %+v", err)
+		return err
+	}
+	// 将响应体映射到形参 t
+	err = json.Unmarshal(res, t)
+	if err != nil {
+		log.Errorf("Error unmarshalling response body: %+v", err)
+		return err
+	}
+	return err
+}
+
 func (c *HttpClient) Get(url string) (data []byte, err error) {
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
