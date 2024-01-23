@@ -2,6 +2,7 @@ package client
 
 import (
 	"github.com/jiushengTech/common/log"
+	"net/url"
 	"testing"
 )
 
@@ -45,7 +46,7 @@ func TestNewHttpClient(t *testing.T) {
 	}
 }
 
-func TestDev(t *testing.T) {
+func TestHttpClient_Post(t *testing.T) {
 	httpClient := NewHttpClient(
 		WithHeader("Content-Type", "application/json"),
 	)
@@ -58,4 +59,21 @@ func TestDev(t *testing.T) {
 	s := string(data)
 	// 打印结果
 	log.Info("Response:", s)
+}
+
+func TestHttpClient_Get(t *testing.T) {
+	httpClient := NewHttpClient(
+		WithHeader("Content-Type", "application/json"),
+	)
+	url := &url.URL{
+		Scheme: "http",
+		Host:   "192.168.10.119:8000",
+		Path:   "/yw/system/sys_dict_type",
+	}
+	resp, err := httpClient.Get(url.String())
+	if err != nil {
+		log.Error("HTTP GET error:", err)
+	}
+	s := string(resp)
+	println(s)
 }

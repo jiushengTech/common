@@ -1,5 +1,7 @@
 package client
 
+import "time"
+
 type Option func(o *HttpClient)
 
 func WithBody(k string, v string) Option {
@@ -14,8 +16,14 @@ func WithHeader(k string, v string) Option {
 	}
 }
 
-//func WithTimeout(timeout time.Duration) Option {
-//	return func(s *HttpClient) {
-//		s.timeout = timeout
-//	}
-//}
+func WithRedirectNum(redirectNum int) Option {
+	return func(s *HttpClient) {
+		s.redirectNum = redirectNum
+	}
+}
+
+func WithTimeout(timeout time.Duration) Option {
+	return func(s *HttpClient) {
+		s.timeout = timeout
+	}
+}
