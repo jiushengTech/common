@@ -150,7 +150,7 @@ func (c *Client) marshalMessage(messageType MessageType, message MessagePayload)
 		break
 	}
 
-	//LogInfo("marshalMessage:", string(buff))
+	//log.Info("marshalMessage:", string(buff))
 
 	return buff, nil
 }
