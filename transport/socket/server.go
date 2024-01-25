@@ -22,6 +22,7 @@ type Server struct {
 	address    string
 	targetAddr string
 	timeout    time.Duration
+	readBuffer int
 }
 
 func NewServer(opts ...ServerOption) *Server {
@@ -31,6 +32,12 @@ func NewServer(opts ...ServerOption) *Server {
 		timeout: 1 * time.Second,
 	}
 	srv.init(opts...)
+	if srv.readBuffer != 0 {
+		err := srv.UdpConn.SetReadBuffer(srv.readBuffer)
+		if err != nil {
+			panic(err)
+		}
+	}
 	return srv
 }
 
