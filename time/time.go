@@ -2,6 +2,7 @@ package time
 
 import (
 	"database/sql/driver"
+	"encoding/json"
 	"fmt"
 	"time"
 )
@@ -9,28 +10,24 @@ import (
 type LocalTime time.Time
 
 func (t *LocalTime) MarshalJSON() ([]byte, error) {
-	tTime := time.Time(*t)
-	return []byte(fmt.Sprintf("\"%v\"", tTime.Format("2006-01-02 15:04:05"))), nil
+	localTime := time.Time(*t)
+	return json.Marshal(localTime.Format(time.DateTime))
 }
 
-func (t *LocalTime) Value() (driver.Value, error) {
-	tlt := time.Time(*t)
-	// 使用 IsZero 方法判断时间是否为零时
-	if tlt.IsZero() {
+func (t LocalTime) Value() (driver.Value, error) {
+	var zeroTime time.Time
+	tlt := time.Time(t)
+	//判断给定时间是否和默认零时间的时间戳相同
+	if tlt.UnixNano() == zeroTime.UnixNano() {
 		return nil, nil
 	}
 	return tlt, nil
 }
 
 func (t *LocalTime) Scan(v interface{}) error {
-	switch value := v.(type) {
-	case time.Time:
+	if value, ok := v.(time.Time); ok {
 		*t = LocalTime(value)
 		return nil
-	case nil:
-		*t = LocalTime(time.Time{})
-		return nil
-	default:
-		return fmt.Errorf("can not convert %v to timestamp", v)
 	}
+	return fmt.Errorf("can not convert %v to timestamp", v)
 }
