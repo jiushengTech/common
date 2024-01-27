@@ -20,9 +20,9 @@ type Logger struct {
 	Sync func() error
 }
 
-func NewZapLogger(c *conf.Config) *Logger {
+func NewZapLogger(c *conf.ZapConf) *Logger {
 	logger := Logger{}
-	cores := logger.GetZapCores(c.ZapConf)
+	cores := logger.GetZapCores(c)
 	options := []zap.Option{
 		zap.AddCaller(),
 		zap.AddStacktrace(
@@ -30,7 +30,7 @@ func NewZapLogger(c *conf.Config) *Logger {
 		zap.AddCaller(),
 		zap.AddCallerSkip(2),
 	}
-	if c.ZapConf.Model == "dev" {
+	if c.Model == "dev" {
 		options = append(options, zap.Development())
 	}
 	// 创建 Logger

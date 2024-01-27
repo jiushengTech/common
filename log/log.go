@@ -26,7 +26,7 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
-	logger := zap.NewZapLogger(&config)
+	logger := zap.NewZapLogger(config.ZapConf)
 	log = klog.NewHelper(logger)
 }
 

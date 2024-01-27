@@ -9,7 +9,7 @@ zapConf:
   # 日志文件目录
   director: logs/
   # 日志级别编码格式，
-  encodeLevel: LowercaseLevelEncoder
+  encodeLevel: LowercaseColorLevelEncoder
   # 堆栈跟踪的键名
   stacktraceKey: stack
   # 日志文件最大存活时间，单位为天，0 表示无限制
