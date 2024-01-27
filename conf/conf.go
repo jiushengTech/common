@@ -5,6 +5,7 @@ type Config struct {
 }
 
 type ZapConf struct {
+	Model         string `yaml:"model"`
 	Level         string `yaml:"level"`
 	Format        string `yaml:"format"`
 	Director      string `yaml:"director"`

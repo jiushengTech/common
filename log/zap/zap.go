@@ -13,32 +13,43 @@ import (
 	"time"
 )
 
-var _ log.Logger = (*ZapLogger)(nil)
+var _ log.Logger = (*Logger)(nil)
 
-type ZapLogger struct {
+type Logger struct {
 	log  *zap.Logger
 	Sync func() error
 }
 
-func NewZapLogger(c *conf.Config) *ZapLogger {
-	logger := ZapLogger{}
+func NewZapLogger(c *conf.Config) *Logger {
+	logger := Logger{}
 	cores := logger.GetZapCores(c.ZapConf)
-	zapLogger := zap.New(zapcore.NewTee(cores...))
-	return &ZapLogger{log: zapLogger, Sync: zapLogger.Sync}
+	options := []zap.Option{
+		zap.AddCaller(),
+		zap.AddStacktrace(
+			zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
+		zap.AddCaller(),
+		zap.AddCallerSkip(2),
+	}
+	if c.ZapConf.Model == "dev" {
+		options = append(options, zap.Development())
+	}
+	// 创建 Logger
+	zapLogger := zap.New(zapcore.NewTee(cores...), options...)
+	return &Logger{log: zapLogger, Sync: zapLogger.Sync}
 }
 
-// GetEncoder 获取 zapcore.Encoder
+// GetEncoder 获取 zap core.Encoder
 // Author Samsaralc
-func (z *ZapLogger) GetEncoder(c *conf.ZapConf) zapcore.Encoder {
+func (z *Logger) GetEncoder(c *conf.ZapConf) zapcore.Encoder {
 	if c.Format == "json" {
 		return zapcore.NewJSONEncoder(z.GetEncoderConfig(c))
 	}
 	return zapcore.NewConsoleEncoder(z.GetEncoderConfig(c))
 }
 
-// GetEncoderConfig 获取zapcore.EncoderConfig
+// GetEncoderConfig 获取zap core.EncoderConfig
 // Author Samsaralc
-func (z *ZapLogger) GetEncoderConfig(c *conf.ZapConf) zapcore.EncoderConfig {
+func (z *Logger) GetEncoderConfig(c *conf.ZapConf) zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
 		MessageKey:     "message",
 		LevelKey:       "level",
@@ -54,19 +65,19 @@ func (z *ZapLogger) GetEncoderConfig(c *conf.ZapConf) zapcore.EncoderConfig {
 	}
 }
 
-// GetEncoderCore 获取Encoder的 zapcore.Core
-func (z *ZapLogger) GetEncoderCore(c *conf.ZapConf, l zapcore.Level, level zap.LevelEnablerFunc) zapcore.Core {
+// GetEncoderCore 获取Encoder的 zap core.Core
+func (z *Logger) GetEncoderCore(c *conf.ZapConf, l zapcore.Level, level zap.LevelEnablerFunc) zapcore.Core {
 	writer := z.GetWriteSyncer(c, l.String()) // 日志分割
 	return zapcore.NewCore(z.GetEncoder(c), writer, level)
 }
 
 // CustomTimeEncoder 自定义日志输出时间格式
-func (z *ZapLogger) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+func (z *Logger) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 	encoder.AppendString(t.Format("2006/01/02 - 15:04:05.000"))
 }
 
-// GetZapCores 根据配置文件的Level获取 []zapcore.Core
-func (z *ZapLogger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
+// GetZapCores 根据配置文件的Level获取 []zap core.Core
+func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
 	for level := TransportLevel(c.Level); level <= zapcore.FatalLevel; level++ {
 		cores = append(cores, z.GetEncoderCore(c, level, GetLevelPriority(level)))
@@ -75,7 +86,7 @@ func (z *ZapLogger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 }
 
 // GetWriteSyncer 创建日志写入器并设置最大文件大小
-func (z *ZapLogger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
+func (z *Logger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
 	logPath := filepath.Join(c.Director, time.Now().Format("2006-01"))
 	err := os.MkdirAll(logPath, os.ModePerm)
 	if err != nil {
@@ -99,7 +110,7 @@ func (z *ZapLogger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteS
 }
 
 // Log 实现log接口
-func (z *ZapLogger) Log(level log.Level, keyvals ...interface{}) error {
+func (z *Logger) Log(level log.Level, keyvals ...interface{}) error {
 	if len(keyvals) == 0 || len(keyvals)%2 != 0 {
 		z.log.Warn(fmt.Sprint("Keyvalues must appear in pairs: ", keyvals))
 		return nil
