@@ -14,20 +14,24 @@ func (t *LocalTime) MarshalJSON() ([]byte, error) {
 	return json.Marshal(localTime.Format(time.DateTime))
 }
 
-func (t LocalTime) Value() (driver.Value, error) {
-	var zeroTime time.Time
-	tlt := time.Time(t)
-	//判断给定时间是否和默认零时间的时间戳相同
-	if tlt.UnixNano() == zeroTime.UnixNano() {
+func (t *LocalTime) Value() (driver.Value, error) {
+	localTime := time.Time(*t)
+	// 如果时间戳为零值，则返回 nil
+	if localTime.IsZero() {
 		return nil, nil
 	}
-	return tlt, nil
+	return localTime, nil
 }
 
 func (t *LocalTime) Scan(v interface{}) error {
-	if value, ok := v.(time.Time); ok {
+	switch value := v.(type) {
+	case time.Time:
 		*t = LocalTime(value)
 		return nil
+	case nil:
+		*t = LocalTime(time.Time{})
+		return nil
+	default:
+		return fmt.Errorf("can not convert %v to timestamp", v)
 	}
-	return fmt.Errorf("can not convert %v to timestamp", v)
 }
