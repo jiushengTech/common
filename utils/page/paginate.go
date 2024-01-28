@@ -21,7 +21,7 @@ type Info struct {
 
 // Page 标准分页结构体，接收查询结果的结构体
 type Page[T any] struct {
-	info    Info
+	Info    Info
 	List    []*T         `json:"data"`
 	AnyList []*anypb.Any `json:"anyList"`
 }
@@ -29,10 +29,10 @@ type Page[T any] struct {
 // 各种查询条件先在query设置好后再放进来
 func GetResult[T any](db *gorm.DB, p *PageQuery) (res *Page[T], e error) {
 	page := &Page[T]{}
-	page.info.PageNum = p.GetPageNum()
-	page.info.PageSize = p.GetPageSize()
-	db.Count(&page.info.Total)
-	if page.info.Total == 0 {
+	page.Info.PageNum = p.GetPageNum()
+	page.Info.PageSize = p.GetPageSize()
+	db.Count(&page.Info.Total)
+	if page.Info.Total == 0 {
 		page.List = []*T{}
 		return
 	}
@@ -43,10 +43,10 @@ func GetResult[T any](db *gorm.DB, p *PageQuery) (res *Page[T], e error) {
 // 各种查询条件先在query设置好后再放进来
 func GetResultWithModel[T any](db *gorm.DB, p *PageQuery, t interface{}) (e error) {
 	page := &Page[T]{}
-	page.info.PageNum = p.GetPageNum()
-	page.info.PageSize = p.GetPageSize()
-	db.Count(&page.info.Total)
-	if page.info.Total == 0 {
+	page.Info.PageNum = p.GetPageNum()
+	page.Info.PageSize = p.GetPageSize()
+	db.Count(&page.Info.Total)
+	if page.Info.Total == 0 {
 		page.List = []*T{}
 		return
 	}
@@ -56,22 +56,22 @@ func GetResultWithModel[T any](db *gorm.DB, p *PageQuery, t interface{}) (e erro
 
 func Paginate[T any](page *Page[T]) func(db *gorm.DB) *gorm.DB {
 	return func(db *gorm.DB) *gorm.DB {
-		if page.info.PageNum <= 0 {
-			page.info.PageNum = 1
+		if page.Info.PageNum <= 0 {
+			page.Info.PageNum = 1
 		}
 		switch {
-		case page.info.PageSize > 10000:
-			page.info.PageSize = 10000 // 限制一下分页大小
-		case page.info.PageSize <= 0:
-			page.info.PageSize = 10
+		case page.Info.PageSize > 10000:
+			page.Info.PageSize = 10000 // 限制一下分页大小
+		case page.Info.PageSize <= 0:
+			page.Info.PageSize = 10
 		}
 		// 使用浮点数除法，然后向上取整
-		page.info.Pages = int64(math.Ceil(float64(page.info.Total) / float64(page.info.PageSize)))
-		p := page.info.PageNum
-		if page.info.PageNum > page.info.Pages {
-			p = page.info.Pages
+		page.Info.Pages = int64(math.Ceil(float64(page.Info.Total) / float64(page.Info.PageSize)))
+		p := page.Info.PageNum
+		if page.Info.PageNum > page.Info.Pages {
+			p = page.Info.Pages
 		}
-		size := page.info.PageSize
+		size := page.Info.PageSize
 		offset := int((p - 1) * size)
 		return db.Offset(offset).Limit(int(size))
 	}
