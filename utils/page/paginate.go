@@ -1,7 +1,6 @@
 package page
 
 import (
-	//"github.com/samsaralc/proto_repo/pb/github.com/jiushengTech/common/page"
 	"google.golang.org/protobuf/types/known/anypb"
 	"gorm.io/gorm"
 	"math"
@@ -12,16 +11,16 @@ import (
 //	PageSize int64 `protobuf:"varint,2,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
 //}
 
-type Info struct {
-	Total    int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
-	PageNum  int64 `protobuf:"varint,2,opt,name=pageNum,proto3" json:"pageNum,omitempty"`
-	PageSize int64 `protobuf:"varint,3,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
-	Pages    int64 `protobuf:"varint,4,opt,name=pages,proto3" json:"pages,omitempty"`
-}
+//type Info struct {
+//	Total    int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
+//	PageNum  int64 `protobuf:"varint,2,opt,name=pageNum,proto3" json:"pageNum,omitempty"`
+//	PageSize int64 `protobuf:"varint,3,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
+//	Pages    int64 `protobuf:"varint,4,opt,name=pages,proto3" json:"pages,omitempty"`
+//}
 
 // Page 标准分页结构体，接收查询结果的结构体
 type Page[T any] struct {
-	Info    Info
+	Info    PageInfo
 	List    []*T         `json:"data"`
 	AnyList []*anypb.Any `json:"anyList"`
 }
