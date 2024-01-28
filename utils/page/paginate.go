@@ -27,10 +27,10 @@ type Page[T any] struct {
 }
 
 // 各种查询条件先在query设置好后再放进来
-func GetResult[T any](db *gorm.DB, query *Query) (res *Page[T], e error) {
+func GetResult[T any](db *gorm.DB, pageNum int64, pageSize int64) (res *Page[T], e error) {
 	page := &Page[T]{}
-	page.info.PageNum = query.PageNum
-	page.info.PageSize = query.PageSize
+	page.info.PageNum = pageNum
+	page.info.PageSize = pageSize
 	db.Count(&page.info.Total)
 	if page.info.Total == 0 {
 		page.List = []*T{}
@@ -41,10 +41,10 @@ func GetResult[T any](db *gorm.DB, query *Query) (res *Page[T], e error) {
 }
 
 // 各种查询条件先在query设置好后再放进来
-func GetResultWithModel[T any](db *gorm.DB, query *Query, t interface{}) (e error) {
+func GetResultWithModel[T any](db *gorm.DB, pageNum int64, pageSize int64, t interface{}) (e error) {
 	page := &Page[T]{}
-	page.info.PageNum = query.PageNum
-	page.info.PageSize = query.PageSize
+	page.info.PageNum = pageNum
+	page.info.PageSize = pageSize
 	db.Count(&page.info.Total)
 	if page.info.Total == 0 {
 		page.List = []*T{}
