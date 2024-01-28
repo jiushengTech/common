@@ -7,10 +7,10 @@ import (
 	"math"
 )
 
-type Query struct {
-	PageNum  int64 `protobuf:"varint,1,opt,name=pageNum,proto3" json:"pageNum,omitempty"`
-	PageSize int64 `protobuf:"varint,2,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
-}
+//type Query struct {
+//	PageNum  int64 `protobuf:"varint,1,opt,name=pageNum,proto3" json:"pageNum,omitempty"`
+//	PageSize int64 `protobuf:"varint,2,opt,name=pageSize,proto3" json:"pageSize,omitempty"`
+//}
 
 type Info struct {
 	Total    int64 `protobuf:"varint,1,opt,name=total,proto3" json:"total,omitempty"`
@@ -27,10 +27,10 @@ type Page[T any] struct {
 }
 
 // 各种查询条件先在query设置好后再放进来
-func GetResult[T any](db *gorm.DB, pageNum int64, pageSize int64) (res *Page[T], e error) {
+func GetResult[T any](db *gorm.DB, p *PageQuery) (res *Page[T], e error) {
 	page := &Page[T]{}
-	page.info.PageNum = pageNum
-	page.info.PageSize = pageSize
+	page.info.PageNum = p.GetPageNum()
+	page.info.PageSize = p.GetPageSize()
 	db.Count(&page.info.Total)
 	if page.info.Total == 0 {
 		page.List = []*T{}
@@ -41,10 +41,10 @@ func GetResult[T any](db *gorm.DB, pageNum int64, pageSize int64) (res *Page[T],
 }
 
 // 各种查询条件先在query设置好后再放进来
-func GetResultWithModel[T any](db *gorm.DB, pageNum int64, pageSize int64, t interface{}) (e error) {
+func GetResultWithModel[T any](db *gorm.DB, p *PageQuery, t interface{}) (e error) {
 	page := &Page[T]{}
-	page.info.PageNum = pageNum
-	page.info.PageSize = pageSize
+	page.info.PageNum = p.GetPageNum()
+	page.info.PageSize = p.GetPageSize()
 	db.Count(&page.info.Total)
 	if page.info.Total == 0 {
 		page.List = []*T{}
