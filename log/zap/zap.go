@@ -24,10 +24,8 @@ func NewZapLogger(c *conf.ZapConf) *Logger {
 	logger := Logger{}
 	cores := logger.GetZapCores(c)
 	options := []zap.Option{
-		zap.AddCaller(),
 		zap.AddStacktrace(
 			zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
-		zap.AddCaller(),
 		zap.AddCallerSkip(2),
 	}
 	if c.Model == "dev" {
