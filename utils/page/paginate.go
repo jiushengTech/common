@@ -18,7 +18,7 @@ import (
 //	Pages    int64 `protobuf:"varint,4,opt,name=pages,proto3" json:"pages,omitempty"`
 //}
 
-// Page 标准分页结构体，接收查询结果的结构体
+// 标准分页结构体，接收查询结果的结构体
 type Page[T any] struct {
 	Info    PageInfo
 	List    []*T         `json:"data"`
