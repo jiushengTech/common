@@ -9,7 +9,7 @@ import (
 
 type Server struct {
 	serial.OpenOptions
-	port io.ReadWriteCloser
+	Conn io.ReadWriteCloser
 	//PortName                string
 	//BaudRate                uint
 	//DataBits                uint
@@ -53,17 +53,17 @@ func (s *Server) Endpoint() (*url.URL, error) {
 
 func (s *Server) Start(ctx context.Context) error {
 	// 打开串口
-	port, err := serial.Open(s.OpenOptions)
+	conn, err := serial.Open(s.OpenOptions)
 	if err != nil {
 		return err
 	}
-	s.port = port
+	s.Conn = conn
 	return err
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	if s.port != nil {
-		return s.port.Close()
+	if s.Conn != nil {
+		return s.Conn.Close()
 	}
 	return nil
 }
