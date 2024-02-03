@@ -81,9 +81,11 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(ctx context.Context) error {
-	err := s.UdpConn.Close()
+	if s.UdpConn != nil {
+		return s.UdpConn.Close()
+	}
 	s.UdpConn = nil
-	return err
+	return nil
 }
 
 func (s *Server) Send(data []byte) (int, error) {
