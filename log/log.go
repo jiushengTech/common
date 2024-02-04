@@ -5,28 +5,38 @@ import (
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/jiushengTech/common/conf"
 	"github.com/jiushengTech/common/log/zap"
-	"github.com/jiushengTech/common/utils/file"
-	"gopkg.in/yaml.v3"
-	"os"
-	"path/filepath"
 )
 
 var log *klog.Helper
 
 func init() {
-	// 构建文件路径
-	path := file.CurrentPath()
-	filePath := filepath.Join(path, "config.yaml")
-	readFile, err := os.ReadFile(filePath)
-	if err != nil {
-		panic(err)
+	//// 构建文件路径
+	//path := file.CurrentPath()
+	//filePath := filepath.Join(path, "config.yaml")
+	//readFile, err := os.ReadFile(filePath)
+	//if err != nil {
+	//	panic(err)
+	//}
+	//var config conf.Config
+	//err = yaml.Unmarshal(readFile, &config)
+	//if err != nil {
+	//	panic(err)
+	//}
+	c := conf.ZapConf{
+		Model:         "dev",
+		Level:         "debug",
+		Format:        "console",
+		Director:      "logs",
+		EncodeLevel:   "LowercaseColorLevelEncoder",
+		StacktraceKey: "stack",
+		MaxAge:        0,
+		ShowLine:      true,
+		LogInConsole:  true,
+		MaxSize:       10,
+		Compress:      false,
+		MaxBackups:    10,
 	}
-	var config conf.Config
-	err = yaml.Unmarshal(readFile, &config)
-	if err != nil {
-		panic(err)
-	}
-	logger := zap.NewZapLogger(config.ZapConf)
+	logger := zap.NewZapLogger(&c)
 	log = klog.NewHelper(logger)
 }
 
