@@ -3,6 +3,7 @@ package serial
 import (
 	"context"
 	"github.com/jacobsa/go-serial/serial"
+	"github.com/jiushengTech/common/log"
 	"io"
 	"net/url"
 )
@@ -55,7 +56,8 @@ func (s *Server) Start(ctx context.Context) error {
 	// 打开串口
 	conn, err := serial.Open(s.OpenOptions)
 	if err != nil {
-		return err
+		log.Error("open serial fail:", err)
+		return nil
 	}
 	s.Conn = conn
 	return err
