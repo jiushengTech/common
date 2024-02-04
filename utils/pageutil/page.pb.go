@@ -2,9 +2,9 @@
 // versions:
 // 	protoc-gen-go v1.31.0
 // 	protoc        v4.25.1
-// source: biz/common/page/page.proto
+// source: biz/common/pageutil/pageutil.proto
 
-package page
+package pageutil
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -323,14 +323,14 @@ func file_biz_common_page_page_proto_rawDescGZIP() []byte {
 
 var file_biz_common_page_page_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_biz_common_page_page_proto_goTypes = []interface{}{
-	(*PageQuery)(nil),  // 0: page.PageQuery
-	(*PageInfo)(nil),   // 1: page.PageInfo
-	(*PageResult)(nil), // 2: page.PageResult
-	(*Response)(nil),   // 3: page.Response
+	(*PageQuery)(nil),  // 0: pageutil.PageQuery
+	(*PageInfo)(nil),   // 1: pageutil.PageInfo
+	(*PageResult)(nil), // 2: pageutil.PageResult
+	(*Response)(nil),   // 3: pageutil.Response
 	(*anypb.Any)(nil),  // 4: google.protobuf.Any
 }
 var file_biz_common_page_page_proto_depIdxs = []int32{
-	4, // 0: page.PageResult.list:type_name -> google.protobuf.Any
+	4, // 0: pageutil.PageResult.list:type_name -> google.protobuf.Any
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name

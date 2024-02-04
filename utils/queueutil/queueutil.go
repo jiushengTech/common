@@ -1,8 +1,8 @@
-// Package queue 提供了一个基于 Dariusz Górecki 建议的快速环形缓冲队列。
+// Package queueutil 提供了一个基于 Dariusz Górecki 建议的快速环形缓冲队列。
 // 使用这个包而不是其他更简单的队列实现（如切片+追加或链表）可以带来
 // 实质性的内存和时间优势，并减少垃圾回收暂停的次数。
 // 该队列的实现之所以如此快，还有一个原因是它 *不* 是线程安全的。
-package queue
+package queueutil
 
 // minQueueLen 是队列可能具有的最小容量。
 // 必须是2的幂，以进行位掩码操作：x % n == x & (n - 1)。

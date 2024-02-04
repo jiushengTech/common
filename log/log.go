@@ -11,7 +11,7 @@ var log *klog.Helper
 
 func init() {
 	//// 构建文件路径
-	//path := file.CurrentPath()
+	//path := fileutil.CurrentPath()
 	//filePath := filepath.Join(path, "config.yaml")
 	//readFile, err := os.ReadFile(filePath)
 	//if err != nil {

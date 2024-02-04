@@ -1,4 +1,4 @@
-package copy
+package copyutil
 
 import (
 	ctime "github.com/jiushengTech/common/time"

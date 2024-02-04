@@ -1,5 +1,4 @@
-// Package excel excel.go
-package excel
+package excelutil
 
 import (
 	"errors"

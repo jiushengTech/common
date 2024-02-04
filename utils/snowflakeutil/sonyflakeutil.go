@@ -1,4 +1,4 @@
-package snowflake
+package snowflakeutil
 
 import (
 	"github.com/jiushengTech/common/log"
