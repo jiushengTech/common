@@ -6,7 +6,7 @@ import (
 	"runtime"
 )
 
-func CurrentPath() string {
+func GetCurrentPath() string {
 	var absPath string
 	_, filename, _, ok := runtime.Caller(1)
 	if ok {
