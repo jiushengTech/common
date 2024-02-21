@@ -6,11 +6,11 @@ import (
 
 type ServerOption func(o *Server)
 
-func WithReadBuffer(readBuffer int) ServerOption {
-	return func(s *Server) {
-		s.readBuffer = readBuffer
-	}
-}
+//func WithReadBuffer(readBuffer int) ServerOption {
+//	return func(s *Server) {
+//		s.readBuffer = readBuffer
+//	}
+//}
 
 func WithNetwork(network string) ServerOption {
 	return func(s *Server) {
