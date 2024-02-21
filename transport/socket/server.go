@@ -17,6 +17,7 @@ var (
 
 type Server struct {
 	UdpConn    *net.UDPConn
+	tcpConn    *net.TCPConn
 	err        error
 	network    string
 	address    string
@@ -51,16 +52,34 @@ func (s *Server) listen() error {
 	if s.address == "" {
 		return errors.New("socket初始化失败, address为空")
 	}
-	udpAddr, err := net.ResolveUDPAddr(s.network, s.address)
-	if errors.Is(err, net.UnknownNetworkError(s.address)) {
-		return err
+	switch s.network {
+	case "tcp":
+		addr, err := net.ResolveTCPAddr(s.network, s.address)
+		if err != nil {
+			return err
+		}
+		tcp, err := net.ListenTCP(s.network, addr)
+		if err != nil {
+			return err
+		}
+		conn, err := tcp.AcceptTCP()
+		if err != nil {
+			return err
+		}
+		s.tcpConn = conn
+	case "udp":
+		udpAddr, err := net.ResolveUDPAddr(s.network, s.address)
+		if errors.Is(err, net.UnknownNetworkError(s.address)) {
+			return err
+		}
+		udpConn, err := net.ListenUDP(s.network, udpAddr)
+		if err != nil {
+			return err
+		}
+		s.UdpConn = udpConn
 	}
-	udpConn, err := net.ListenUDP(s.network, udpAddr)
-	if err != nil {
-		return err
-	}
-	s.UdpConn = udpConn
-	return err
+
+	return nil
 }
 
 func (s *Server) Endpoint() (*url.URL, error) {
