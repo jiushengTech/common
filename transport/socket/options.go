@@ -35,3 +35,21 @@ func WithTargetAddr(targetAddr string) ServerOption {
 		s.targetAddr = targetAddr
 	}
 }
+
+func WithDeadline(Deadline time.Duration) ServerOption {
+	return func(s *Server) {
+		s.readDeadline = Deadline
+	}
+}
+
+func WithReadDeadline(readDeadline time.Duration) ServerOption {
+	return func(s *Server) {
+		s.readDeadline = readDeadline
+	}
+}
+
+func WithWriteDeadline(writeDeadline time.Duration) ServerOption {
+	return func(s *Server) {
+		s.writeDeadline = writeDeadline
+	}
+}

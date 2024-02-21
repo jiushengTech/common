@@ -17,13 +17,16 @@ var (
 
 // Server is a simple socket server.
 type Server struct {
-	Conn       net.Conn
-	client     net.Conn
-	err        error
-	network    string
-	address    string
-	targetAddr string
-	timeout    time.Duration
+	Conn          net.Conn
+	Client        net.Conn
+	err           error
+	network       string
+	address       string
+	targetAddr    string
+	timeout       time.Duration
+	deadline      time.Duration
+	readDeadline  time.Duration
+	writeDeadline time.Duration
 }
 
 // NewServer creates a new Server with the provided options.
@@ -113,7 +116,7 @@ func (s *Server) Send(data []byte) (int, error) {
 	var err error
 	switch s.network {
 	case "tcp", "udp":
-		s.client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
+		s.Client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
 	default:
 		return 0, errors.New("unsupported network type")
 	}
@@ -125,9 +128,9 @@ func (s *Server) Send(data []byte) (int, error) {
 		if err != nil {
 			return
 		}
-	}(s.client)
+	}(s.Client)
 
-	i, err := s.client.Write(data)
+	i, err := s.Client.Write(data)
 	if err != nil {
 		return 0, err
 	}
