@@ -3,6 +3,7 @@ package socket
 import (
 	"context"
 	"errors"
+	"github.com/go-kratos/kratos/v2/log"
 	"net"
 	"net/url"
 	"time"
@@ -100,7 +101,11 @@ func (s *Server) Endpoint() (*url.URL, error) {
 
 // Start starts the server and begins listening for incoming connections.
 func (s *Server) Start(ctx context.Context) error {
-	return s.listen()
+	err := s.listen()
+	if err == nil {
+		log.Infof("[socket] "+s.network+" server listening on: %s", s.address)
+	}
+	return err
 }
 
 // Stop stops the server by closing the connection.
