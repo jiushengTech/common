@@ -113,23 +113,18 @@ func (s *Server) Stop(ctx context.Context) error {
 
 // Send sends data to the target address.
 func (s *Server) Send(data []byte) (int, error) {
-	var err error
-	switch s.network {
-	case "tcp", "udp":
-		s.Client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
-	default:
-		return 0, errors.New("unsupported network type")
-	}
-	if err != nil {
-		return 0, err
-	}
-	defer func(client net.Conn) {
-		err := client.Close()
-		if err != nil {
-			return
+	if s.Client == nil {
+		var err error
+		switch s.network {
+		case "tcp", "udp":
+			s.Client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
+		default:
+			return 0, errors.New("unsupported network type")
 		}
-	}(s.Client)
-
+		if err != nil {
+			return 0, err
+		}
+	}
 	i, err := s.Client.Write(data)
 	if err != nil {
 		return 0, err
