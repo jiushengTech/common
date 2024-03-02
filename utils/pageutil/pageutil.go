@@ -30,10 +30,13 @@ func GetResult[T any](db *gorm.DB, p *PageQuery) (res *Page[T], e error) {
 	page := &Page[T]{}
 	page.Info.PageNum = p.GetPageNum()
 	page.Info.PageSize = p.GetPageSize()
-	db.Count(&page.Info.Total)
+	err := db.Count(&page.Info.Total).Error
+	if err != nil {
+		return page, err
+	}
 	if page.Info.Total == 0 {
 		page.List = []*T{}
-		return
+		return page, err
 	}
 	e = db.Scopes(Paginate(page)).Find(&page.List).Error
 	return page, e
