@@ -36,7 +36,7 @@ func GetResult[T any](db *gorm.DB, p *PageQuery) (res *Page[T], e error) {
 		return
 	}
 	e = db.Scopes(Paginate(page)).Find(&page.List).Error
-	return page, nil
+	return page, e
 }
 
 // 各种查询条件先在query设置好后再放进来
