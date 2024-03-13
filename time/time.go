@@ -4,6 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
+	"github.com/jiushengTech/common/log"
 	"time"
 	"unicode"
 )
@@ -53,7 +54,6 @@ func (t *LocalTime) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &timeStr); err != nil {
 		return err
 	}
-
 	// 去除字母并用空格替换
 	var cleanedStr string
 	for _, char := range timeStr {
@@ -63,6 +63,15 @@ func (t *LocalTime) UnmarshalJSON(data []byte) error {
 			cleanedStr += " "
 		}
 	}
+	// 截取固定长度的字符串
+	const layoutLength = 19
+	if len(cleanedStr) < layoutLength {
+		// 打印错误信息并将时间设置为空
+		log.Info("Invalid time string format")
+		*t = LocalTime(time.Time{})
+		return nil
+	}
+	cleanedStr = cleanedStr[:layoutLength]
 	parseTime, err := time.Parse(time.DateTime, cleanedStr)
 	if err != nil {
 		return err
