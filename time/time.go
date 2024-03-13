@@ -44,6 +44,10 @@ func (t *LocalTime) String() string {
 	return time.Time(*t).Format(time.DateTime)
 }
 
+func (t *LocalTime) ConvertTime() time.Time {
+	return time.Time(*t)
+}
+
 func (t *LocalTime) UnmarshalJSON(data []byte) error {
 	var timeStr string
 	if err := json.Unmarshal(data, &timeStr); err != nil {
