@@ -11,7 +11,7 @@ import (
 
 type LocalTime time.Time
 
-// MarshalJSON 重写 MarshaJSON 方法，在此方法中实现自定义格式的转换
+// MarshalJSON implements the json.Marshaler interface.
 func (t *LocalTime) MarshalJSON() ([]byte, error) {
 	localTime := time.Time(*t)
 	return json.Marshal(localTime.Format(time.DateTime))
@@ -49,6 +49,7 @@ func (t *LocalTime) ConvertTime() time.Time {
 	return time.Time(*t)
 }
 
+// UnmarshalJSON implements the json.Unmarshaler interface.
 func (t *LocalTime) UnmarshalJSON(data []byte) error {
 	var timeStr string
 	if err := json.Unmarshal(data, &timeStr); err != nil {
