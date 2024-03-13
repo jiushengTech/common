@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
+	"unicode"
 )
 
 type LocalTime time.Time
@@ -41,4 +42,27 @@ func (t *LocalTime) Scan(v interface{}) error {
 
 func (t *LocalTime) String() string {
 	return time.Time(*t).Format(time.DateTime)
+}
+
+func (t *LocalTime) UnmarshalJSON(data []byte) error {
+	var timeStr string
+	if err := json.Unmarshal(data, &timeStr); err != nil {
+		return err
+	}
+
+	// 去除字母并用空格替换
+	var cleanedStr string
+	for _, char := range timeStr {
+		if unicode.IsDigit(char) || unicode.IsPunct(char) {
+			cleanedStr += string(char)
+		} else {
+			cleanedStr += " "
+		}
+	}
+	parseTime, err := time.Parse(time.DateTime, cleanedStr)
+	if err != nil {
+		return err
+	}
+	*t = LocalTime(parseTime)
+	return nil
 }
