@@ -2,19 +2,7 @@ package fileutil
 
 import (
 	"fmt"
-	"path/filepath"
-	"runtime"
 )
-
-func GetCurrentPath() string {
-	var absPath string
-	_, filename, _, ok := runtime.Caller(1)
-	if ok {
-		absPath = filepath.Dir(filename)
-	}
-
-	return absPath
-}
 
 func FormatFileSize(fileSize int64) (size string) {
 	if fileSize < 1024 {
