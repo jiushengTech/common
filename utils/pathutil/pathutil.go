@@ -17,7 +17,7 @@ func GetCurrentDateOnlyPath(path string) string {
 // 将path的第一个/后面添加当前日期
 // 如果path中没有/，则直接在path后面添加当前日期
 
-func getMinioPath(path string) string {
+func GetMinioPath(path string) string {
 	trim := strings.Trim(path, "/")
 	index := strings.Index(trim, "/")
 	if index == -1 {
