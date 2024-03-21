@@ -10,7 +10,7 @@ func GetCurrentDateOnlyPath(path string) string {
 	if path == "" {
 		return format
 	}
-	return format + "/" + path
+	return path + "/" + format
 }
 
 // GetMinioAccessPath path的第一个/前面是bucket
