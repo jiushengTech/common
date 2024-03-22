@@ -17,7 +17,7 @@ func GetCurrentPath() string {
 	return absPath
 }
 
-func GetCurrentDateOnlyPath(path string) string {
+func GetCurrentDateOnlyAsDir(path string) string {
 	trim := strings.Trim(path, "/")
 	format := time.Now().Format(time.DateOnly)
 	if trim == "" {
