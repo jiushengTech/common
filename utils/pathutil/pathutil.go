@@ -35,7 +35,7 @@ func GetMinioPath(path string) string {
 	if index == -1 {
 		path = trim + "/" + GetCurrentDateOnlyPath("")
 	} else {
-		path = trim + "/" + GetCurrentDateOnlyPath(trim[index+1:])
+		path = trim[:index] + GetCurrentDateOnlyPath(trim[index:])
 	}
 	return path
 }
