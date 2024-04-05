@@ -64,17 +64,20 @@ func (z *Logger) GetEncoderConfig(c *conf.ZapConf) zapcore.EncoderConfig {
 }
 
 // GetEncoderCore 获取Encoder的 zap core.Core
+// Author Samsaralc
 func (z *Logger) GetEncoderCore(c *conf.ZapConf, l zapcore.Level, level zap.LevelEnablerFunc) zapcore.Core {
 	writer := z.GetWriteSyncer(c, l.String()) // 日志分割
 	return zapcore.NewCore(z.GetEncoder(c), writer, level)
 }
 
 // CustomTimeEncoder 自定义日志输出时间格式
+// Author Samsaralc
 func (z *Logger) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 	encoder.AppendString(t.Format("2006/01/02 - 15:04:05.000"))
 }
 
 // GetZapCores 根据配置文件的Level获取 []zap core.Core
+// Author Samsaralc
 func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
 	for level := TransportLevel(c.Level); level <= zapcore.FatalLevel; level++ {
@@ -84,6 +87,7 @@ func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 }
 
 // GetWriteSyncer 创建日志写入器并设置最大文件大小
+// Author Samsaralc
 func (z *Logger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
 	logPath := filepath.Join(c.Director, time.Now().Format("2006-01"))
 	err := os.MkdirAll(logPath, os.ModePerm)
@@ -108,6 +112,7 @@ func (z *Logger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSync
 }
 
 // Log 实现log接口
+// Author Samsaralc
 func (z *Logger) Log(level log.Level, keyvals ...interface{}) error {
 	if len(keyvals) == 0 || len(keyvals)%2 != 0 {
 		z.log.Warn(fmt.Sprint("Keyvalues must appear in pairs: ", keyvals))
@@ -133,6 +138,7 @@ func (z *Logger) Log(level log.Level, keyvals ...interface{}) error {
 }
 
 // GetLevelPriority 根据 zapcore.Level 获取 zap.LevelEnablerFunc
+// Author Samsaralc
 func GetLevelPriority(level zapcore.Level) zap.LevelEnablerFunc {
 	switch level {
 	case zapcore.DebugLevel:

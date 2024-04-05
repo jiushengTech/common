@@ -2,6 +2,7 @@ package log
 
 import (
 	"context"
+	"errors"
 	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/jiushengTech/common/conf"
 	"github.com/jiushengTech/common/log/zap"
@@ -22,6 +23,7 @@ func init() {
 	//if err != nil {
 	//	panic(err)
 	//}
+	// 默认配置
 	c := conf.ZapConf{
 		Model:         "dev",
 		Level:         "debug",
@@ -36,7 +38,16 @@ func init() {
 		Compress:      false,
 		MaxBackups:    10,
 	}
-	logger := zap.NewZapLogger(&c)
+	InitLog(&c) // 使用默认配置初始化日志
+}
+
+// initLog 初始化日志系统。
+// 如果c为nil，函数会panic。
+func InitLog(c *conf.ZapConf) {
+	if c == nil {
+		panic(errors.New("ZapConf cannot be nil"))
+	}
+	logger := zap.NewZapLogger(c)
 	log = klog.NewHelper(logger)
 }
 
