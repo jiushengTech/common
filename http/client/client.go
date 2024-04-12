@@ -12,7 +12,7 @@ import (
 
 type HttpClient struct {
 	header      map[string]string
-	body        map[string]string
+	body        map[string]any
 	timeout     time.Duration
 	redirectNum int
 }
@@ -35,7 +35,7 @@ func (c *HttpClient) getClient() *http.Client {
 func NewHttpClient(opts ...Option) *HttpClient {
 	srv := &HttpClient{
 		header: make(map[string]string),
-		body:   make(map[string]string),
+		body:   make(map[string]any),
 	}
 	for _, o := range opts {
 		o(srv)

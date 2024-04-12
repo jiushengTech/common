@@ -4,7 +4,7 @@ import "time"
 
 type Option func(o *HttpClient)
 
-func WithBody(k string, v string) Option {
+func WithBody(k string, v any) Option {
 	return func(s *HttpClient) {
 		s.body[k] = v
 	}
