@@ -36,7 +36,11 @@ func (t LocalTime) Value() (driver.Value, error) {
 func (t *LocalTime) Scan(v interface{}) error {
 	switch value := v.(type) {
 	case time.Time:
-		*t = LocalTime(value)
+		parse, err := time.Parse(time.DateTime, value.Format(time.DateTime))
+		if err != nil {
+			return err
+		}
+		*t = LocalTime(parse)
 		return nil
 	case nil:
 		*t = LocalTime(time.Time{})
