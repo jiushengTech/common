@@ -54,7 +54,7 @@ func (t *LocalTime) ConvertTime() time.Time {
 	return time.Time(*t)
 }
 
-func (t *LocalTime) Now() LocalTime {
+func Now() LocalTime {
 	format := time.Now().Format(time.DateTime)
 	parse, err := time.Parse(time.DateTime, format)
 	if err != nil {
