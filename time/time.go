@@ -24,7 +24,12 @@ func (t LocalTime) Value() (driver.Value, error) {
 	if localTime.IsZero() {
 		return nil, nil
 	}
-	return localTime, nil
+	format := localTime.Format(time.DateTime)
+	parse, err := time.Parse(time.DateTime, format)
+	if err != nil {
+		return nil, err
+	}
+	return parse, nil
 }
 
 // Scan 实现 Scan 方法，读取数据库时会调用该方法将时间数据转换成自定义时间类型；
