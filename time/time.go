@@ -54,6 +54,15 @@ func (t *LocalTime) ConvertTime() time.Time {
 	return time.Time(*t)
 }
 
+func (t *LocalTime) Now() LocalTime {
+	format := time.Now().Format(time.DateTime)
+	parse, err := time.Parse(time.DateTime, format)
+	if err != nil {
+		panic(err)
+	}
+	return LocalTime(parse)
+}
+
 // UnmarshalJSON implements the json.Unmarshaler interface.
 func (t *LocalTime) UnmarshalJSON(data []byte) error {
 	var timeStr string
