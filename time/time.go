@@ -55,12 +55,8 @@ func (t *LocalTime) ConvertTime() time.Time {
 }
 
 func (t *LocalTime) Now() LocalTime {
-	format := time.Now().Format(time.DateTime)
-	parse, err := time.Parse(time.DateTime, format)
-	if err != nil {
-		panic(err)
-	}
-	return LocalTime(parse)
+	currentTime := time.Now() // 获取当前时间
+	return LocalTime(currentTime)
 }
 
 // UnmarshalJSON implements the json.Unmarshaler interface.
