@@ -1,4 +1,4 @@
-module polaris
+module github.com/jiushengTech/common/registry/polaris
 
 go 1.22
 
@@ -35,4 +35,3 @@ require (
 	google.golang.org/protobuf v1.32.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )
-

@@ -235,44 +235,6 @@ func (r *Registry) Register(_ context.Context, serviceInstance *registry.Service
 			return err
 		}
 		instanceID := service.InstanceID
-
-		//if r.opt.Heartbeat {
-		//	// start heartbeat report
-		//	go func() {
-		//		ticker := time.NewTicker(time.Second * time.Duration(r.opt.TTL))
-		//		defer ticker.Stop()
-		//
-		//		for {
-		//			<-ticker.C
-		//
-		//			_, err = r.provider.RegisterInstance(&api.InstanceRegisterRequest{
-		//				InstanceRegisterRequest: model.InstanceRegisterRequest{
-		//					Service:      serviceInstance.Name + u.Scheme,
-		//					ServiceToken: r.opt.ServiceToken,
-		//					Namespace:    r.opt.Namespace,
-		//					Host:         host,
-		//					Port:         portNum,
-		//					Protocol:     r.opt.Protocol,
-		//					Weight:       &r.opt.Weight,
-		//					Priority:     &r.opt.Priority,
-		//					Version:      &serviceInstance.Version,
-		//					Metadata:     rmd,
-		//					Healthy:      &r.opt.Healthy,
-		//					Isolate:      &r.opt.Isolate,
-		//					TTL:          &r.opt.TTL,
-		//					Timeout:      &r.opt.Timeout,
-		//					RetryCount:   &r.opt.RetryCount,
-		//					Location:     &r.opt.Location,
-		//				},
-		//			})
-		//			if err != nil {
-		//				log.Error(err.Error())
-		//				continue
-		//			}
-		//		}
-		//	}()
-		//}
-
 		ids = append(ids, instanceID)
 	}
 	// need to set InstanceID for Deregister
