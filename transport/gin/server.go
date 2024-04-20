@@ -3,6 +3,7 @@ package gin
 import (
 	"context"
 	"crypto/tls"
+	"github.com/go-kratos/kratos/v2/errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -95,8 +96,11 @@ func (s *Server) Start(ctx context.Context) error {
 	} else {
 		err = s.server.ListenAndServe()
 	}
-	log.Error(err)
-	return err
+	if !errors.Is(err, http.ErrServerClosed) {
+		log.Error(err)
+		return err
+	}
+	return nil
 }
 
 func (s *Server) Stop(ctx context.Context) error {
