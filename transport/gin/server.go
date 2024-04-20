@@ -10,7 +10,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	"github.com/go-kratos/kratos/v2/errors"
 	"github.com/go-kratos/kratos/v2/log"
 	"github.com/go-kratos/kratos/v2/middleware"
 	"github.com/go-kratos/kratos/v2/transport"
@@ -96,10 +95,7 @@ func (s *Server) Start(ctx context.Context) error {
 	} else {
 		err = s.server.ListenAndServe()
 	}
-	if !errors.Is(err, http.ErrServerClosed) {
-		return err
-	}
-
+	log.Error(err)
 	return nil
 }
 

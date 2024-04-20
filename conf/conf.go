@@ -14,7 +14,7 @@ type ZapConf struct {
 	MaxAge        int32  `yaml:"maxAge"`        //日志最大保存时间
 	ShowLine      bool   `yaml:"showLine"`      //显示行号
 	LogInConsole  bool   `yaml:"logInConsole"`  //是否输出到控制台
-	MaxSize       int32  `yaml:"maxSize"`       //单个日志文件最大大小
+	MaxSize       int32  `yaml:"maxSize"`       //单个日志文件最大大小,以MB为单位
 	Compress      bool   `yaml:"compress"`      //是否压缩
 	MaxBackups    int32  `yaml:"maxBackups"`    //最大备份数
 }
