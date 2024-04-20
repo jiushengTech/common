@@ -96,7 +96,7 @@ func (s *Server) Start(ctx context.Context) error {
 		err = s.server.ListenAndServe()
 	}
 	log.Error(err)
-	return nil
+	return err
 }
 
 func (s *Server) Stop(ctx context.Context) error {
