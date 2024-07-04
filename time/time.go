@@ -45,6 +45,13 @@ func (t *LocalTime) Scan(v interface{}) error {
 	case nil:
 		*t = LocalTime(time.Time{})
 		return nil
+	case []uint8:
+		parse, err := time.Parse(time.DateTime, string(value))
+		if err != nil {
+			return err
+		}
+		*t = LocalTime(parse)
+		return nil
 	default:
 		return fmt.Errorf("can not convert %v to timestamp", v)
 	}
