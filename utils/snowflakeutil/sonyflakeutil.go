@@ -8,6 +8,7 @@ import (
 
 var sf *sonyflake.Sonyflake
 
+// InitSnowflake deprecated plz use idutil.InitSnowflake
 func InitSnowflake() {
 	settings := sonyflake.Settings{
 		StartTime: time.Now(),
@@ -20,6 +21,8 @@ func InitSnowflake() {
 	sf = s
 	log.Info("Snowflake 初始化成功")
 }
+
+// InitSnowflake deprecated plz use idutil.GetId
 func GetId() uint64 {
 	id, err := sf.NextID()
 	if err != nil {
