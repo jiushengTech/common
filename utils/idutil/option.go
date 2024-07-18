@@ -1,4 +1,4 @@
-package snowflakeutil
+package idutil
 
 import (
 	"github.com/sony/sonyflake"
