@@ -21,6 +21,7 @@ func InitSnowflake(opts ...Option) *sonyflake.Sonyflake {
 		log.Fatal("Sonyflake 初始化失败: ", err)
 	}
 	log.Info("Sonyflake 初始化成功")
+	sf = s
 	return s
 }
 
