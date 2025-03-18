@@ -2,8 +2,8 @@ package zap
 
 import (
 	"fmt"
-	"github.com/go-kratos/kratos/v2/log"
-	"github.com/jiushengTech/common/conf"
+	klog "github.com/go-kratos/kratos/v2/log"
+	"github.com/jiushengTech/common/log/zap/conf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/natefinch/lumberjack.v2"
@@ -13,42 +13,44 @@ import (
 	"time"
 )
 
-var _ log.Logger = (*Logger)(nil)
+var _ klog.Logger = (*Logger)(nil)
 
+// Logger 实现了klog.Logger接口
 type Logger struct {
 	log  *zap.Logger
 	Sync func() error
 }
 
+// NewZapLogger 创建一个新的zap日志记录器
 func NewZapLogger(c *conf.ZapConf) *Logger {
-	logger := Logger{}
+	logger := &Logger{}
 	cores := logger.GetZapCores(c)
 	options := []zap.Option{
-		zap.AddStacktrace(
-			zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
+		zap.AddStacktrace(zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
 		zap.AddCallerSkip(2),
 	}
+
 	if c.Model == "dev" {
 		options = append(options, zap.Development())
 	}
-	// 创建 Logger
+
 	zapLogger := zap.New(zapcore.NewTee(cores...), options...)
 	return &Logger{log: zapLogger, Sync: zapLogger.Sync}
 }
 
-// GetEncoder 获取 zap core.Encoder
-// Author Samsaralc
-func (z *Logger) GetEncoder(c *conf.ZapConf) zapcore.Encoder {
+// GetEncoder 获取编码器
+func (z *Logger) GetEncoder(c *conf.ZapConf, forConsole bool) zapcore.Encoder {
+	encoderConfig := z.GetEncoderConfig(c, forConsole)
+
 	if c.Format == "json" {
-		return zapcore.NewJSONEncoder(z.GetEncoderConfig(c))
+		return zapcore.NewJSONEncoder(encoderConfig)
 	}
-	return zapcore.NewConsoleEncoder(z.GetEncoderConfig(c))
+	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
-// GetEncoderConfig 获取zap core.EncoderConfig
-// Author Samsaralc
-func (z *Logger) GetEncoderConfig(c *conf.ZapConf) zapcore.EncoderConfig {
-	return zapcore.EncoderConfig{
+// GetEncoderConfig 获取编码器配置
+func (z *Logger) GetEncoderConfig(c *conf.ZapConf, forConsole bool) zapcore.EncoderConfig {
+	encConfig := zapcore.EncoderConfig{
 		MessageKey:     "message",
 		LevelKey:       "level",
 		TimeKey:        "time",
@@ -56,148 +58,162 @@ func (z *Logger) GetEncoderConfig(c *conf.ZapConf) zapcore.EncoderConfig {
 		CallerKey:      "caller",
 		StacktraceKey:  c.StacktraceKey,
 		LineEnding:     zapcore.DefaultLineEnding,
-		EncodeLevel:    GetZapEncodeLevel(c.EncodeLevel),
-		EncodeTime:     z.CustomTimeEncoder,
 		EncodeDuration: zapcore.SecondsDurationEncoder,
 		EncodeCaller:   zapcore.FullCallerEncoder,
+		EncodeTime:     z.CustomTimeEncoder,
+	}
+
+	if forConsole {
+		// 控制台输出使用彩色编码器
+		encConfig.EncodeLevel = GetZapEncodeLevel(c.EncodeLevel)
+	} else {
+		// 文件输出使用非彩色编码器
+		encConfig.EncodeLevel = getNonColorEncoder(c.EncodeLevel)
+	}
+
+	return encConfig
+}
+
+// getNonColorEncoder 获取非彩色级别编码器
+func getNonColorEncoder(encodeLevel string) zapcore.LevelEncoder {
+	switch encodeLevel {
+	case "LowercaseColorLevelEncoder", "LowercaseLevelEncoder":
+		return zapcore.LowercaseLevelEncoder
+	case "CapitalColorLevelEncoder", "CapitalLevelEncoder":
+		return zapcore.CapitalLevelEncoder
+	default:
+		return zapcore.LowercaseLevelEncoder
 	}
 }
 
-// GetEncoderCore 获取Encoder的 zap core.Core
-// Author Samsaralc
-func (z *Logger) GetEncoderCore(c *conf.ZapConf, l zapcore.Level, level zap.LevelEnablerFunc) zapcore.Core {
-	writer := z.GetWriteSyncer(c, l.String()) // 日志分割
-	return zapcore.NewCore(z.GetEncoder(c), writer, level)
-}
-
-// CustomTimeEncoder 自定义日志输出时间格式
-// Author Samsaralc
+// CustomTimeEncoder 自定义日志时间格式
 func (z *Logger) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
-	encoder.AppendString(t.Format("2006/01/02 - 15:04:05.000"))
+	encoder.AppendString(t.Format(time.DateTime))
 }
 
-// GetZapCores 根据配置文件的Level获取 []zap core.Core
-// Author Samsaralc
+// GetZapCores 获取所有zap核心组件
 func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
-	for level := TransportLevel(c.Level); level <= zapcore.FatalLevel; level++ {
-		cores = append(cores, z.GetEncoderCore(c, level, GetLevelPriority(level)))
+	minLevel := TransportLevel(c.Level)
+
+	// 为每个级别创建Core
+	for level := minLevel; level <= zapcore.FatalLevel; level++ {
+		levelFunc := GetLevelPriority(level)
+
+		// 添加文件输出Core
+		fileCore := z.createFileCore(c, level, levelFunc)
+		cores = append(cores, fileCore)
+
+		// 如果需要控制台输出，添加控制台Core
+		if c.LogInConsole {
+			consoleCore := z.createConsoleCore(c, levelFunc)
+			cores = append(cores, consoleCore)
+		}
 	}
+
 	return cores
 }
 
-// GetWriteSyncer 创建日志写入器并设置最大文件大小
-// Author Samsaralc
+// createFileCore 创建文件输出的Core
+func (z *Logger) createFileCore(c *conf.ZapConf, level zapcore.Level, levelFunc zap.LevelEnablerFunc) zapcore.Core {
+	return zapcore.NewCore(
+		z.GetEncoder(c, false),
+		z.GetWriteSyncer(c, level.String()),
+		levelFunc,
+	)
+}
+
+// createConsoleCore 创建控制台输出的Core
+func (z *Logger) createConsoleCore(c *conf.ZapConf, levelFunc zap.LevelEnablerFunc) zapcore.Core {
+	return zapcore.NewCore(
+		z.GetEncoder(c, true),
+		zapcore.AddSync(os.Stdout),
+		levelFunc,
+	)
+}
+
+// GetWriteSyncer 创建文件日志写入器
 func (z *Logger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
+	// 创建日志目录
 	logPath := filepath.Join(c.Director, time.Now().Format("2006-01"))
-	err := os.MkdirAll(logPath, os.ModePerm)
-	if err != nil {
-		panic(err)
-	}
-	logFileName := time.Now().Format("02") + "-" + level + ".log"
-	logFilePath := filepath.Join(logPath, logFileName)
-	lumberjackLogger := &lumberjack.Logger{
-		Filename:   logFilePath,       // 日志文件路径
-		MaxSize:    int(c.MaxSize),    // 日志文件的最大大小（以 MB 为单位）
-		MaxBackups: int(c.MaxBackups), // 保留的旧日志文件的最大个数
-		MaxAge:     int(c.MaxAge),     // 保留的旧日志文件的最大天数
-		Compress:   c.Compress,        // 是否压缩旧的日志文件
+	if err := os.MkdirAll(logPath, os.ModePerm); err != nil {
+		panic(fmt.Sprintf("创建日志目录失败: %v", err))
 	}
 
-	// 是否开启控制台输出
-	if c.LogInConsole {
-		return zapcore.NewMultiWriteSyncer(zapcore.AddSync(os.Stdout), zapcore.AddSync(lumberjackLogger))
+	logFileName := fmt.Sprintf("%02d-%s.log", time.Now().Day(), level)
+	logFilePath := filepath.Join(logPath, logFileName)
+
+	// 配置日志文件分割
+	lumberjackLogger := &lumberjack.Logger{
+		Filename:   logFilePath,
+		MaxSize:    int(c.MaxSize),
+		MaxAge:     int(c.MaxAge),
+		MaxBackups: int(c.MaxBackups),
+		LocalTime:  true,
+		Compress:   c.Compress,
 	}
+
 	return zapcore.AddSync(lumberjackLogger)
 }
 
-// Log 实现log接口
-// Author Samsaralc
-func (z *Logger) Log(level log.Level, keyvals ...interface{}) error {
+// Log 实现klog.Logger接口的Log方法
+func (z *Logger) Log(level klog.Level, keyvals ...interface{}) error {
+	// 验证输入参数
 	if len(keyvals) == 0 || len(keyvals)%2 != 0 {
-		z.log.Warn(fmt.Sprint("Keyvalues must appear in pairs: ", keyvals))
+		z.log.Warn("Keyvalues must appear in pairs", zap.Any("keyvals", keyvals))
 		return nil
 	}
-	var data []zap.Field
+
+	// 构建日志字段
+	fields := make([]zap.Field, 0, len(keyvals)/2)
 	for i := 0; i < len(keyvals); i += 2 {
-		data = append(data, zap.Any(fmt.Sprint(keyvals[i]), keyvals[i+1]))
+		key := fmt.Sprint(keyvals[i])
+		fields = append(fields, zap.Any(key, keyvals[i+1]))
 	}
+
+	// 根据日志级别记录日志
 	switch level {
-	case log.LevelDebug:
-		z.log.Debug("", data...)
-	case log.LevelInfo:
-		z.log.Info("", data...)
-	case log.LevelWarn:
-		z.log.Warn("", data...)
-	case log.LevelError:
-		z.log.Error("", data...)
-	case log.LevelFatal:
-		z.log.Fatal("", data...)
+	case klog.LevelDebug:
+		z.log.Debug("", fields...)
+	case klog.LevelInfo:
+		z.log.Info("", fields...)
+	case klog.LevelWarn:
+		z.log.Warn("", fields...)
+	case klog.LevelError:
+		z.log.Error("", fields...)
+	case klog.LevelFatal:
+		z.log.Fatal("", fields...)
 	}
+
 	return nil
 }
 
-// GetLevelPriority 根据 zapcore.Level 获取 zap.LevelEnablerFunc
-// Author Samsaralc
+// GetLevelPriority 根据日志级别创建级别筛选函数
 func GetLevelPriority(level zapcore.Level) zap.LevelEnablerFunc {
-	switch level {
-	case zapcore.DebugLevel:
-		return func(level zapcore.Level) bool { // 调试级别
-			return level == zap.DebugLevel
-		}
-	case zapcore.InfoLevel:
-		return func(level zapcore.Level) bool { // 日志级别
-			return level == zap.InfoLevel
-		}
-	case zapcore.WarnLevel:
-		return func(level zapcore.Level) bool { // 警告级别
-			return level == zap.WarnLevel
-		}
-	case zapcore.ErrorLevel:
-		return func(level zapcore.Level) bool { // 错误级别
-			return level == zap.ErrorLevel
-		}
-	case zapcore.DPanicLevel:
-		return func(level zapcore.Level) bool { // dpanic级别
-			return level == zap.DPanicLevel
-		}
-	case zapcore.PanicLevel:
-		return func(level zapcore.Level) bool { // panic级别
-			return level == zap.PanicLevel
-		}
-	case zapcore.FatalLevel:
-		return func(level zapcore.Level) bool { // 终止级别
-			return level == zap.FatalLevel
-		}
-	default:
-		return func(level zapcore.Level) bool { // 调试级别
-			return level == zap.DebugLevel
-		}
+	return func(l zapcore.Level) bool {
+		return l == level
 	}
 }
 
-// GetZapEncodeLevel 根据 EncodeLevel 返回 zapcore.LevelEncoder
-// Author Samsaralc
+// GetZapEncodeLevel 获取zap日志级别编码器
 func GetZapEncodeLevel(encodeLevel string) zapcore.LevelEncoder {
-	switch {
-	case encodeLevel == "LowercaseLevelEncoder": // 小写编码器(默认)
+	switch encodeLevel {
+	case "LowercaseLevelEncoder":
 		return zapcore.LowercaseLevelEncoder
-	case encodeLevel == "LowercaseColorLevelEncoder": // 小写编码器带颜色
+	case "LowercaseColorLevelEncoder":
 		return zapcore.LowercaseColorLevelEncoder
-	case encodeLevel == "CapitalLevelEncoder": // 大写编码器
+	case "CapitalLevelEncoder":
 		return zapcore.CapitalLevelEncoder
-	case encodeLevel == "CapitalColorLevelEncoder": // 大写编码器带颜色
+	case "CapitalColorLevelEncoder":
 		return zapcore.CapitalColorLevelEncoder
 	default:
 		return zapcore.LowercaseLevelEncoder
 	}
 }
 
-// TransportLevel 根据字符串转化为 zapcore.Level
-// Author Samsaralc
+// TransportLevel 字符串转日志级别
 func TransportLevel(level string) zapcore.Level {
-	level = strings.ToLower(level)
-	switch level {
+	switch strings.ToLower(level) {
 	case "debug":
 		return zapcore.DebugLevel
 	case "info":
@@ -205,7 +221,7 @@ func TransportLevel(level string) zapcore.Level {
 	case "warn":
 		return zapcore.WarnLevel
 	case "error":
-		return zapcore.WarnLevel
+		return zapcore.ErrorLevel
 	case "dpanic":
 		return zapcore.DPanicLevel
 	case "panic":

@@ -1,11 +1,10 @@
-package log
+package zap
 
 import (
 	"context"
 	"errors"
 	klog "github.com/go-kratos/kratos/v2/log"
-	"github.com/jiushengTech/common/conf"
-	"github.com/jiushengTech/common/log/zap"
+	"github.com/jiushengTech/common/log/zap/conf"
 )
 
 var log *klog.Helper
@@ -25,29 +24,29 @@ func init() {
 	//}
 	// 默认配置
 	c := conf.ZapConf{
-		Model:         "dev",
-		Level:         "debug",
-		Format:        "console",
-		Director:      "logs",
-		EncodeLevel:   "LowercaseColorLevelEncoder",
-		StacktraceKey: "stack",
-		MaxAge:        0,
-		ShowLine:      true,
-		LogInConsole:  true,
-		MaxSize:       10,
-		Compress:      false,
-		MaxBackups:    10,
+		Model:         "dev",                        // 开发模式配置
+		Level:         "debug",                      // 日志级别设置为 debug（捕获 debug、info、warn、error 等）
+		Format:        "console",                    // 日志输出格式（console 或 JSON）
+		Director:      "logs",                       // 日志文件存储目录
+		EncodeLevel:   "LowercaseColorLevelEncoder", // 使用彩色小写级别名称在日志中
+		StacktraceKey: "stack",                      // 堆栈跟踪信息的 JSON 键名
+		MaxAge:        0,                            // 保留旧日志文件的最大天数（0 表示无限制）
+		ShowLine:      true,                         // 显示日志打印所在的行号
+		LogInConsole:  true,                         // 是否在控制台输出日志
+		MaxSize:       10,                           // 每个日志文件的最大大小（单位：MB）
+		Compress:      false,                        // 是否压缩/归档旧日志文件
+		MaxBackups:    10,                           // 保留的旧日志文件的最大数量
 	}
 	InitLog(&c) // 使用默认配置初始化日志
 }
 
-// initLog 初始化日志系统。
+// InitLog initLog 初始化日志系统。
 // 如果c为nil，函数会panic。
 func InitLog(c *conf.ZapConf) {
 	if c == nil {
 		panic(errors.New("ZapConf cannot be nil"))
 	}
-	logger := zap.NewZapLogger(c)
+	logger := NewZapLogger(c)
 	log = klog.NewHelper(logger)
 }
 

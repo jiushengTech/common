@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
-	"github.com/jiushengTech/common/log"
+	log "github.com/jiushengTech/common/log/zap"
 	"io"
 	"net/http"
 	"time"
