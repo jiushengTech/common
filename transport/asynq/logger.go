@@ -2,8 +2,10 @@ package asynq
 
 import (
 	"fmt"
+	z "github.com/jiushengTech/common/log/zap"
+	"github.com/jiushengTech/common/log/zap/conf"
+	"go.uber.org/zap"
 
-	"github.com/go-kratos/kratos/v2/log"
 	"github.com/hibiken/asynq"
 )
 
@@ -11,81 +13,48 @@ const (
 	logKey = "asynq"
 )
 
-///
-/// logger
-///
-
-func LogDebug(args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelDebug, logKey, fmt.Sprint(args...))
-}
-
-func LogInfo(args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelInfo, logKey, fmt.Sprint(args...))
-}
-
-func LogWarn(args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelWarn, logKey, fmt.Sprint(args...))
-}
-
-func LogError(args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelError, logKey, fmt.Sprint(args...))
-}
-
-func LogFatal(args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelFatal, logKey, fmt.Sprint(args...))
-}
-
-///
-/// logger
-///
-
-func LogDebugf(format string, args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelDebug, logKey, fmt.Sprintf(format, args...))
-}
-
-func LogInfof(format string, args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelInfo, logKey, fmt.Sprintf(format, args...))
-}
-
-func LogWarnf(format string, args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelWarn, logKey, fmt.Sprintf(format, args...))
-}
-
-func LogErrorf(format string, args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelError, logKey, fmt.Sprintf(format, args...))
-}
-
-func LogFatalf(format string, args ...interface{}) {
-	_ = log.GetLogger().Log(log.LevelFatal, logKey, fmt.Sprintf(format, args...))
-}
-
-///
-/// logger
-///
-
 type logger struct {
+	logger *zap.Logger
 }
 
 func newLogger() asynq.Logger {
-	return &logger{}
+	l := z.NewZapLogger(&conf.ZapConf{
+		Model:         "dev",                        // 开发模式配置
+		Level:         "debug",                      // 日志级别设置为 debug（捕获 debug、info、warn、error 等）
+		Format:        "console",                    // 日志输出格式（console 或 JSON）
+		Director:      "logs",                       // 日志文件存储目录
+		EncodeLevel:   "LowercaseColorLevelEncoder", // 使用彩色小写级别名称在日志中
+		StacktraceKey: "stack",                      // 堆栈跟踪信息的 JSON 键名
+		MaxAge:        0,                            // 保留旧日志文件的最大天数（0 表示无限制）
+		AddCaller:     true,                         // 显示日志打印所在的行号
+		AddCallerSkip: 1,                            // 跳过调用栈的行数
+		LogInConsole:  true,                         // 是否在控制台输出日志
+		MaxSize:       10,                           // 每个日志文件的最大大小（单位：MB）
+		Compress:      true,                         // 是否压缩/归档旧日志文件
+		MaxBackups:    10,                           // 保留的旧日志文件的最大数量
+		TimeRotation:  z.RotateHourly,               // 时间轮转类型: "0:minute", "1:hour" 或 "2:day"
+	})
+	return logger{
+		logger: l,
+	}
 }
 
 func (l logger) Debug(args ...interface{}) {
-	LogDebug(args...)
+	l.logger.Sugar().Debugln(logKey, fmt.Sprint(args...))
 }
 
 func (l logger) Info(args ...interface{}) {
-	LogInfo(args...)
+	l.logger.Sugar().Infoln(logKey, fmt.Sprint(args...))
 }
 
 func (l logger) Warn(args ...interface{}) {
-	LogWarn(args...)
+	l.logger.Sugar().Warnln(logKey, fmt.Sprint(args...))
 }
 
 func (l logger) Error(args ...interface{}) {
-	LogError(args...)
+	l.logger.Sugar().Errorln(logKey, fmt.Sprint(args...))
 }
 
 func (l logger) Fatal(args ...interface{}) {
-	LogFatal(args...)
+	l.logger.Sugar().Fatalln(logKey, fmt.Sprint(args...))
 }

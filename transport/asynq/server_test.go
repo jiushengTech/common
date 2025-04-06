@@ -15,6 +15,7 @@ import (
 
 const (
 	localRedisAddr = "127.0.0.1:6379"
+	redisPassword  = "123456"
 
 	testTask1        = "test_task_1"
 	testDelayTask    = "test_delay_task"
@@ -41,8 +42,8 @@ func handlePeriodicTask(taskType string, taskData *TaskPayload) error {
 }
 
 func TestNewTaskOnly(t *testing.T) {
-	//interrupt := make(chan os.Signal, 1)
-	//signal.Notify(interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
 	ctx := context.Background()
 
@@ -50,7 +51,8 @@ func TestNewTaskOnly(t *testing.T) {
 
 	srv := NewServer(
 		WithAddress(localRedisAddr),
-		WithRedisPassword("123456"),
+		WithRedisPassword(redisPassword),
+		WithShutdownTimeout(3*time.Second),
 	)
 
 	err = srv.NewTask(testTask1,
@@ -71,7 +73,7 @@ func TestNewTaskOnly(t *testing.T) {
 		}
 	}()
 
-	//<-interrupt
+	<-interrupt
 }
 
 func TestNewPeriodicTaskOnly(t *testing.T) {
@@ -84,7 +86,7 @@ func TestNewPeriodicTaskOnly(t *testing.T) {
 
 	srv := NewServer(
 		WithAddress(localRedisAddr),
-		WithRedisPassword("123456"),
+		WithRedisPassword(redisPassword),
 	)
 
 	// 每分钟执行一次
@@ -118,7 +120,7 @@ func TestDelayTask(t *testing.T) {
 
 	srv := NewServer(
 		WithAddress(localRedisAddr),
-		WithRedisPassword("123456"),
+		WithRedisPassword(redisPassword),
 	)
 
 	err = RegisterSubscriber(srv, testDelayTask, handleDelayTask)
@@ -164,7 +166,7 @@ func TestPeriodicTask(t *testing.T) {
 
 	srv := NewServer(
 		WithAddress(localRedisAddr),
-		WithRedisPassword("123456"),
+		WithRedisPassword(redisPassword),
 	)
 
 	err = RegisterSubscriber(srv, testPeriodicTask, handlePeriodicTask)
@@ -200,7 +202,7 @@ func TestTaskSubscribe(t *testing.T) {
 
 	srv := NewServer(
 		WithAddress(localRedisAddr),
-		WithRedisPassword("123456"),
+		WithRedisPassword(redisPassword),
 	)
 
 	err = RegisterSubscriber(srv, testTask1, handleTask1)
@@ -281,4 +283,43 @@ func TestAllInOne(t *testing.T) {
 	}()
 
 	<-interrupt
+}
+
+func TestWaitResultTask(t *testing.T) {
+
+	ctx := context.Background()
+
+	var err error
+
+	srv := NewServer(
+		WithAddress(localRedisAddr),
+	)
+
+	err = RegisterSubscriber(srv, testTask1, handleTask1)
+
+	defer func() {
+		if err = srv.Stop(ctx); err != nil {
+			t.Errorf("expected nil got %v", err)
+		}
+	}()
+
+	go func() {
+		if err = srv.Start(ctx); err != nil {
+			panic(err)
+		}
+	}()
+
+	// 最多重试3次，10秒超时
+	err = srv.NewWaitResultTask(testTask1,
+		&TaskPayload{Message: "wait result task"},
+		asynq.Retention(time.Hour*1),
+		asynq.MaxRetry(3),
+		asynq.Timeout(10*time.Second),
+	)
+	if err != nil {
+		t.Errorf("expected nil got %v", err)
+		return
+	}
+
+	t.Logf("Wait for task result...")
 }

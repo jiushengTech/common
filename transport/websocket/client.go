@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"github.com/jiushengTech/common/log"
+	log "github.com/jiushengTech/common/log/klog/logger"
 	"github.com/tx7do/kratos-transport/broker"
 	"net/url"
 	"time"
@@ -63,11 +63,11 @@ func (c *Client) Connect() error {
 		return errors.New("endpoint is nil")
 	}
 
-	log.Infof("connecting to %s", c.endpoint.String())
+	log.Log.Infof("connecting to %s", c.endpoint.String())
 
 	conn, resp, err := ws.DefaultDialer.Dial(c.endpoint.String(), nil)
 	if err != nil {
-		log.Errorf("%s [%v]", err.Error(), resp)
+		log.Log.Errorf("%s [%v]", err.Error(), resp)
 		return err
 	}
 	c.conn = conn
@@ -80,7 +80,7 @@ func (c *Client) Connect() error {
 func (c *Client) Disconnect() {
 	if c.conn != nil {
 		if err := c.conn.Close(); err != nil {
-			log.Errorf("disconnect error: %s", err.Error())
+			log.Log.Errorf("disconnect error: %s", err.Error())
 		}
 		c.conn = nil
 	}
@@ -101,7 +101,7 @@ func RegisterClientMessageHandler[T any](cli *Client, messageType MessageType, h
 			case *T:
 				return handler(t)
 			default:
-				log.Error("invalid payload struct type:", t)
+				log.Log.Error("invalid payload struct type:", t)
 				return errors.New("invalid payload struct type")
 			}
 		},
@@ -150,7 +150,7 @@ func (c *Client) marshalMessage(messageType MessageType, message MessagePayload)
 		break
 	}
 
-	//log.Info("marshalMessage:", string(buff))
+	//log.Log.Info("marshalMessage:", string(buff))
 
 	return buff, nil
 }
@@ -158,7 +158,7 @@ func (c *Client) marshalMessage(messageType MessageType, message MessagePayload)
 func (c *Client) SendMessage(messageType MessageType, message interface{}) error {
 	buff, err := c.marshalMessage(messageType, message)
 	if err != nil {
-		log.WithContext(context.Background()).Error("marshal message exception:", err)
+		log.Log.WithContext(context.Background()).Error("marshal message exception:", err)
 		return err
 	}
 
@@ -202,7 +202,7 @@ func (c *Client) run() {
 		messageType, data, err := c.conn.ReadMessage()
 		if err != nil {
 			if ws.IsUnexpectedCloseError(err, ws.CloseNormalClosure, ws.CloseGoingAway, ws.CloseAbnormalClosure) {
-				log.WithContext(context.Background()).Errorf("read message error: %v", err)
+				log.Log.WithContext(context.Background()).Errorf("read message error: %v", err)
 			}
 			return
 		}
@@ -221,7 +221,7 @@ func (c *Client) run() {
 
 		case ws.PingMessage:
 			if err := c.sendPongMessage(""); err != nil {
-				log.WithContext(context.Background()).Error("write pong message error: ", err)
+				log.Log.WithContext(context.Background()).Error("write pong message error: ", err)
 				return
 			}
 			break
@@ -241,14 +241,14 @@ func (c *Client) unmarshalMessage(buf []byte) (*ClientHandlerData, MessagePayloa
 	case PayloadTypeBinary:
 		var msg BinaryMessage
 		if err := msg.Unmarshal(buf); err != nil {
-			log.WithContext(context.Background()).Errorf("decode message exception: %s", err)
+			log.Log.WithContext(context.Background()).Errorf("decode message exception: %s", err)
 			return nil, nil, err
 		}
 
 		var ok bool
 		handler, ok = c.messageHandlers[msg.Type]
 		if !ok {
-			log.WithContext(context.Background()).Error("message handler not found:", msg.Type)
+			log.Log.WithContext(context.Background()).Error("message handler not found:", msg.Type)
 			return nil, nil, errors.New("message handler not found")
 		}
 
@@ -259,7 +259,7 @@ func (c *Client) unmarshalMessage(buf []byte) (*ClientHandlerData, MessagePayloa
 		}
 
 		if err := broker.Unmarshal(c.codec, msg.Body, &payload); err != nil {
-			log.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
+			log.Log.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
 			return nil, nil, err
 		}
 		//LogDebug(string(msg.Body))
@@ -267,14 +267,14 @@ func (c *Client) unmarshalMessage(buf []byte) (*ClientHandlerData, MessagePayloa
 	case PayloadTypeText:
 		var msg TextMessage
 		if err := msg.Unmarshal(buf); err != nil {
-			log.WithContext(context.Background()).Errorf("decode message exception: %s", err)
+			log.Log.WithContext(context.Background()).Errorf("decode message exception: %s", err)
 			return nil, nil, err
 		}
 
 		var ok bool
 		handler, ok = c.messageHandlers[msg.Type]
 		if !ok {
-			log.WithContext(context.Background()).Error("message handler not found:", msg.Type)
+			log.Log.WithContext(context.Background()).Error("message handler not found:", msg.Type)
 			return nil, nil, errors.New("message handler not found")
 		}
 
@@ -285,7 +285,7 @@ func (c *Client) unmarshalMessage(buf []byte) (*ClientHandlerData, MessagePayloa
 		}
 
 		if err := broker.Unmarshal(c.codec, []byte(msg.Body), &payload); err != nil {
-			log.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
+			log.Log.WithContext(context.Background()).Errorf("unmarshal message exception: %s", err)
 			return nil, nil, err
 		}
 		//LogDebug(string(msg.Body))
@@ -300,13 +300,13 @@ func (c *Client) messageHandler(buf []byte) error {
 	var payload MessagePayload
 
 	if handler, payload, err = c.unmarshalMessage(buf); err != nil {
-		log.WithContext(context.Background()).Errorf("unmarshal message failed: %s", err)
+		log.Log.WithContext(context.Background()).Errorf("unmarshal message failed: %s", err)
 		return err
 	}
 	//LogDebug(payload)
 
 	if err = handler.Handler(payload); err != nil {
-		log.WithContext(context.Background()).Errorf("message handler exception: %s", err)
+		log.Log.WithContext(context.Background()).Errorf("message handler exception: %s", err)
 		return err
 	}
 

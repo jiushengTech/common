@@ -3,7 +3,7 @@ package serial
 import (
 	"context"
 	"github.com/jacobsa/go-serial/serial"
-	"github.com/jiushengTech/common/log"
+	"github.com/jiushengTech/common/log/zap/logger"
 	"io"
 	"net/url"
 )
@@ -11,20 +11,6 @@ import (
 type Server struct {
 	serial.OpenOptions
 	Conn io.ReadWriteCloser
-	//PortName                string
-	//BaudRate                uint
-	//DataBits                uint
-	//StopBits                uint
-	//ParityMode              uint
-	//RTSCTSFlowControl       bool
-	//InterCharacterTimeout   uint
-	//MinimumReadSize         uint
-	//Rs485Enable             bool
-	//Rs485RtsHighDuringSend  bool
-	//Rs485RtsHighAfterSend   bool
-	//Rs485RxDuringTx         bool
-	//Rs485DelayRtsBeforeSend uint
-	//Rs485DelayRtsAfterSend  uint
 }
 
 func NewServer(opts ...Option) *Server {
@@ -56,11 +42,11 @@ func (s *Server) Start(ctx context.Context) error {
 	// 打开串口
 	conn, err := serial.Open(s.OpenOptions)
 	if err != nil {
-		log.Error("open serial fail:", err)
+		logger.Log.Error("open serial fail:", err)
 		return nil
 	}
 	s.Conn = conn
-	log.Infof("[serial] server listening on: %s", s.PortName)
+	logger.Log.Infof("[serial] server listening on: %s", s.PortName)
 	return err
 }
 

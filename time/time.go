@@ -4,7 +4,7 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	"github.com/jiushengTech/common/log"
+	log "github.com/jiushengTech/common/log/zap/logger"
 	"time"
 	"unicode"
 )

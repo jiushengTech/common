@@ -2,65 +2,81 @@ package zap
 
 import (
 	"fmt"
-	klog "github.com/go-kratos/kratos/v2/log"
 	"github.com/jiushengTech/common/log/zap/conf"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/natefinch/lumberjack.v2"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
 )
 
-var _ klog.Logger = (*Logger)(nil)
-
-// Logger 实现了klog.Logger接口
-type Logger struct {
-	log  *zap.Logger
-	Sync func() error
-}
-
-// NewZapLogger 创建一个新的zap日志记录器
-func NewZapLogger(c *conf.ZapConf) *Logger {
-	logger := &Logger{}
-	cores := logger.GetZapCores(c)
+// NewZapLogger 创建并返回一个 zapLogger 实例
+func NewZapLogger(c *conf.ZapConf) *zap.Logger {
+	cores := getZapCores(c)
 	options := []zap.Option{
 		zap.AddStacktrace(zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
-		zap.AddCallerSkip(2),
+		zap.AddCallerSkip(c.AddCallerSkip),
 	}
 
+	if c.AddCaller {
+		options = append(options, zap.AddCaller())
+	}
 	if c.Model == "dev" {
 		options = append(options, zap.Development())
 	}
+	// 创建并返回 zap.Logger
+	return zap.New(zapcore.NewTee(cores...), options...)
+}
 
-	zapLogger := zap.New(zapcore.NewTee(cores...), options...)
-	return &Logger{log: zapLogger, Sync: zapLogger.Sync}
+func DefaultZapLogger() *zap.Logger {
+	return NewZapLogger(&conf.ZapConf{
+		Model:         "dev",                        // 开发模式配置
+		Level:         "debug",                      // 日志级别设置为 debug（捕获 debug、info、warn、error 等）
+		Format:        "console",                    // 日志输出格式（console 或 JSON）
+		Director:      "logs",                       // 日志文件存储目录
+		EncodeLevel:   "LowercaseColorLevelEncoder", // 使用彩色小写级别名称在日志中
+		StacktraceKey: "stack",                      // 堆栈跟踪信息的 JSON 键名
+		MaxAge:        0,                            // 保留旧日志文件的最大天数（0 表示无限制）
+		AddCaller:     true,                         // 显示日志打印所在的行号
+		AddCallerSkip: 0,                            // 跳过调用栈的行数
+		LogInConsole:  true,                         // 是否在控制台输出日志
+		MaxSize:       10,                           // 每个日志文件的最大大小（单位：MB）
+		Compress:      true,                         // 是否压缩/归档旧日志文件
+		MaxBackups:    10,                           // 保留的旧日志文件的最大数量
+		TimeRotation:  RotateHourly,                 // 时间轮转类型: "0:minute", "1:hour" 或 "2:day"
+	})
 }
 
 // GetEncoder 获取编码器
-func (z *Logger) GetEncoder(c *conf.ZapConf, forConsole bool) zapcore.Encoder {
-	encoderConfig := z.GetEncoderConfig(c, forConsole)
+func GetEncoder(c *conf.ZapConf, forConsole bool) zapcore.Encoder {
+	encoderConfig := GetEncoderConfig(c, forConsole)
 
 	if c.Format == "json" {
 		return zapcore.NewJSONEncoder(encoderConfig)
+	}
+	switch c.Format {
+	case "json":
+		return zapcore.NewJSONEncoder(encoderConfig)
+	case "console":
+		return zapcore.NewConsoleEncoder(encoderConfig)
 	}
 	return zapcore.NewConsoleEncoder(encoderConfig)
 }
 
 // GetEncoderConfig 获取编码器配置
-func (z *Logger) GetEncoderConfig(c *conf.ZapConf, forConsole bool) zapcore.EncoderConfig {
+func GetEncoderConfig(c *conf.ZapConf, forConsole bool) zapcore.EncoderConfig {
 	encConfig := zapcore.EncoderConfig{
 		MessageKey:     "message",
 		LevelKey:       "level",
 		TimeKey:        "time",
 		NameKey:        "logger",
-		CallerKey:      "caller",
+		CallerKey:      "caller", // 确保记录调用者信息
 		StacktraceKey:  c.StacktraceKey,
 		LineEnding:     zapcore.DefaultLineEnding,
 		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.FullCallerEncoder,
-		EncodeTime:     z.CustomTimeEncoder,
+		EncodeCaller:   zapcore.FullCallerEncoder, // 使用FullCallerEncoder，显示完整的文件和行号
+		EncodeTime:     CustomTimeEncoder,
 	}
 
 	if forConsole {
@@ -87,12 +103,12 @@ func getNonColorEncoder(encodeLevel string) zapcore.LevelEncoder {
 }
 
 // CustomTimeEncoder 自定义日志时间格式
-func (z *Logger) CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
+func CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 	encoder.AppendString(t.Format(time.DateTime))
 }
 
-// GetZapCores 获取所有zap核心组件
-func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
+// getZapCores 获取所有zap核心组件
+func getZapCores(c *conf.ZapConf) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 7)
 	minLevel := TransportLevel(c.Level)
 
@@ -101,12 +117,12 @@ func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 		levelFunc := GetLevelPriority(level)
 
 		// 添加文件输出Core
-		fileCore := z.createFileCore(c, level, levelFunc)
+		fileCore := createFileCore(c, level, levelFunc)
 		cores = append(cores, fileCore)
 
 		// 如果需要控制台输出，添加控制台Core
 		if c.LogInConsole {
-			consoleCore := z.createConsoleCore(c, levelFunc)
+			consoleCore := createConsoleCore(c, levelFunc)
 			cores = append(cores, consoleCore)
 		}
 	}
@@ -115,77 +131,41 @@ func (z *Logger) GetZapCores(c *conf.ZapConf) []zapcore.Core {
 }
 
 // createFileCore 创建文件输出的Core
-func (z *Logger) createFileCore(c *conf.ZapConf, level zapcore.Level, levelFunc zap.LevelEnablerFunc) zapcore.Core {
+func createFileCore(c *conf.ZapConf, level zapcore.Level, levelFunc zap.LevelEnablerFunc) zapcore.Core {
 	return zapcore.NewCore(
-		z.GetEncoder(c, false),
-		z.GetWriteSyncer(c, level.String()),
+		GetEncoder(c, false),
+		GetWriteSyncer(c, level.String()),
 		levelFunc,
 	)
 }
 
 // createConsoleCore 创建控制台输出的Core
-func (z *Logger) createConsoleCore(c *conf.ZapConf, levelFunc zap.LevelEnablerFunc) zapcore.Core {
+func createConsoleCore(c *conf.ZapConf, levelFunc zap.LevelEnablerFunc) zapcore.Core {
 	return zapcore.NewCore(
-		z.GetEncoder(c, true),
+		GetEncoder(c, true),
 		zapcore.AddSync(os.Stdout),
 		levelFunc,
 	)
 }
 
-// GetWriteSyncer 创建文件日志写入器
-func (z *Logger) GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
+// GetWriteSyncer 创建文件日志写入器，支持按照大小和时间切割
+func GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
 	// 创建日志目录
 	logPath := filepath.Join(c.Director, time.Now().Format("2006-01"))
 	if err := os.MkdirAll(logPath, os.ModePerm); err != nil {
 		panic(fmt.Sprintf("创建日志目录失败: %v", err))
 	}
 
-	logFileName := fmt.Sprintf("%02d-%s.log", time.Now().Day(), level)
-	logFilePath := filepath.Join(logPath, logFileName)
-
-	// 配置日志文件分割
-	lumberjackLogger := &lumberjack.Logger{
-		Filename:   logFilePath,
-		MaxSize:    int(c.MaxSize),
-		MaxAge:     int(c.MaxAge),
-		MaxBackups: int(c.MaxBackups),
-		LocalTime:  true,
-		Compress:   c.Compress,
+	// 根据日志级别创建不同的文件夹
+	levelDir := filepath.Join(logPath, level)
+	if err := os.MkdirAll(levelDir, os.ModePerm); err != nil {
+		panic(fmt.Sprintf("创建日志级别目录失败: %v", err))
 	}
 
-	return zapcore.AddSync(lumberjackLogger)
-}
+	// 创建支持时间轮转的写入器
+	writer := NewTimeRotationWriter(c, level, levelDir)
 
-// Log 实现klog.Logger接口的Log方法
-func (z *Logger) Log(level klog.Level, keyvals ...interface{}) error {
-	// 验证输入参数
-	if len(keyvals) == 0 || len(keyvals)%2 != 0 {
-		z.log.Warn("Keyvalues must appear in pairs", zap.Any("keyvals", keyvals))
-		return nil
-	}
-
-	// 构建日志字段
-	fields := make([]zap.Field, 0, len(keyvals)/2)
-	for i := 0; i < len(keyvals); i += 2 {
-		key := fmt.Sprint(keyvals[i])
-		fields = append(fields, zap.Any(key, keyvals[i+1]))
-	}
-
-	// 根据日志级别记录日志
-	switch level {
-	case klog.LevelDebug:
-		z.log.Debug("", fields...)
-	case klog.LevelInfo:
-		z.log.Info("", fields...)
-	case klog.LevelWarn:
-		z.log.Warn("", fields...)
-	case klog.LevelError:
-		z.log.Error("", fields...)
-	case klog.LevelFatal:
-		z.log.Fatal("", fields...)
-	}
-
-	return nil
+	return zapcore.AddSync(writer)
 }
 
 // GetLevelPriority 根据日志级别创建级别筛选函数

@@ -1,7 +1,7 @@
 package idutil
 
 import (
-	"github.com/jiushengTech/common/log"
+	"fmt"
 	"github.com/sony/sonyflake"
 	"time"
 )
@@ -9,7 +9,7 @@ import (
 var sf *sonyflake.Sonyflake
 
 // InitSnowflake 初始化 Sonyflake 并应用传递的选项
-func InitSnowflake(opts ...Option) *sonyflake.Sonyflake {
+func InitSnowflake(opts ...Option) (*sonyflake.Sonyflake, error) {
 	settings := sonyflake.Settings{}
 	// 应用所有传递的选项
 	for _, opt := range opts {
@@ -18,11 +18,10 @@ func InitSnowflake(opts ...Option) *sonyflake.Sonyflake {
 
 	s, err := sonyflake.New(settings)
 	if err != nil {
-		log.Fatal("Sonyflake 初始化失败: ", err)
+		return nil, err
 	}
-	log.Info("Sonyflake 初始化成功")
 	sf = s
-	return s
+	return s, nil
 }
 
 func GetId() int64 {
@@ -33,10 +32,10 @@ func GetId() int64 {
 		if err == nil {
 			return int64(id)
 		}
-		log.Errorf("雪花id获取失败，重试次数: %d", i+1)
+		_ = fmt.Errorf("雪花id获取失败，重试次数: %d", i+1)
 		time.Sleep(1 * time.Millisecond)
 	}
-	log.Error("雪花id获取失败，已重试3次")
+	_ = fmt.Errorf("雪花id获取失败，已重试3次")
 	return -1 // 失败时返回一个默认值，视情况而定
 }
 
@@ -48,9 +47,9 @@ func GetUId() uint64 {
 		if err == nil {
 			return id
 		}
-		log.Errorf("雪花id获取失败，重试次数: %d", i+1)
+		_ = fmt.Errorf("雪花id获取失败，重试次数: %d", i+1)
 		time.Sleep(1 * time.Millisecond)
 	}
-	log.Error("雪花id获取失败，已重试3次")
+	_ = fmt.Errorf("雪花id获取失败，已重试3次")
 	return 0 // 失败时返回一个默认值，视情况而定
 }

@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/google/uuid"
 	ws "github.com/gorilla/websocket"
-	"github.com/jiushengTech/common/log"
+	log "github.com/jiushengTech/common/log/zap/logger"
 )
 
 var channelBufSize = 256
@@ -60,7 +60,7 @@ func (c *Session) Listen() {
 func (c *Session) closeConnect() {
 	if c.conn != nil {
 		if err := c.conn.Close(); err != nil {
-			log.WithContext(context.Background()).Errorf("disconnect error: %s", err.Error())
+			log.Errorf("disconnect error: %s", err.Error())
 		}
 		c.conn = nil
 	}

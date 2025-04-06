@@ -15,7 +15,7 @@ import (
 	"github.com/go-kratos/kratos/v2/encoding"
 	"github.com/go-kratos/kratos/v2/transport"
 	ws "github.com/gorilla/websocket"
-	"github.com/jiushengTech/common/log"
+	log "github.com/jiushengTech/common/log/zap/logger"
 )
 
 type Binder func() Any

@@ -1,7 +1,7 @@
 package websocket
 
 import (
-	"github.com/jiushengTech/common/log"
+	log "github.com/jiushengTech/common/log/zap/logger"
 	"sync"
 )
 
