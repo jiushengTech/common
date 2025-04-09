@@ -16,7 +16,7 @@ func NewZapLogger(c *conf.ZapConf) *zap.Logger {
 	cores := getZapCores(c)
 	options := []zap.Option{
 		zap.AddStacktrace(zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
-		zap.AddCallerSkip(c.AddCallerSkip),
+		zap.AddCallerSkip(int(c.AddCallerSkip)),
 	}
 
 	if c.AddCaller {

@@ -24,5 +24,5 @@ zapConf:
   compress: false
   # 最多保留的日志备份文件数量
   maxBackups: 10
-  # 时间轮转类型: "hour"或"day"
+  # 时间轮转类型: "0:minute", "1:hour" 或 "2:day"
   timeRotation: hour
