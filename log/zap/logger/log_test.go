@@ -7,7 +7,7 @@ import (
 
 func TestLog(t *testing.T) {
 
-	for range 10000 {
+	for range 1000 {
 		time.Sleep(1 * time.Second)
 		Slog.Debug("test debug")
 		Slog.Debugf("test debugf %s", "debugf")

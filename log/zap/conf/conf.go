@@ -12,7 +12,7 @@ type ZapConf struct {
 	EncodeLevel   string `yaml:"encodeLevel"`   //日志输出格式
 	StacktraceKey string `yaml:"stacktraceKey"` //堆栈信息key
 	MaxAge        int32  `yaml:"maxAge"`        //日志最大保存时间
-	AddCaller     bool   `yaml:"showLine"`      //打印调用者信息
+	AddCaller     bool   `yaml:"addCaller"`     //打印调用者信息
 	AddCallerSkip int32  `yaml:"addCallerSkip"` //打印调用者信息的跳过层级
 	LogInConsole  bool   `yaml:"logInConsole"`  //是否输出到控制台
 	MaxSize       int32  `yaml:"maxSize"`       //单个日志文件最大大小,以MB为单位
