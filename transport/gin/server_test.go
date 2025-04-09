@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	api "github.com/tx7do/kratos-transport/testing/api/protobuf"
+	api "github.com/jiushengTech/common/testing/api/protobuf"
 )
 
 func TestServer(t *testing.T) {

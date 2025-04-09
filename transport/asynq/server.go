@@ -11,9 +11,9 @@ import (
 	"sync/atomic"
 
 	"github.com/hibiken/asynq"
+	"github.com/jiushengTech/common/broker"
+	"github.com/jiushengTech/common/keepalive"
 	k "github.com/jiushengTech/common/log/klog/logger"
-	"github.com/tx7do/kratos-transport/broker"
-	"github.com/tx7do/kratos-transport/keepalive"
 )
 
 var (
