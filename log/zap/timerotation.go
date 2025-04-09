@@ -44,7 +44,7 @@ func (t *TimeRotationHook) Write(p []byte) (n int, err error) {
 		t.Lumberjack.Close()
 
 		// 生成新的文件名和下一次轮转时间
-		logFileName, nextRotation := generateFileNameAndRotation(now, t.Config.TimeRotation, t.Level)
+		logFileName, nextRotation := generateFileNameAndRotation(now, int(t.Config.TimeRotation), t.Level)
 
 		// 更新文件路径
 		t.Lumberjack.Filename = filepath.Join(t.LevelDir, logFileName)
@@ -73,7 +73,7 @@ func NewTimeRotationWriter(c *conf.ZapConf, level, levelDir string) *TimeRotatio
 	now := time.Now()
 
 	// 生成文件名和计算下一次轮转时间
-	logFileName, nextRotation := generateFileNameAndRotation(now, c.TimeRotation, level)
+	logFileName, nextRotation := generateFileNameAndRotation(now, int(c.TimeRotation), level)
 
 	logFilePath := filepath.Join(levelDir, logFileName)
 
@@ -89,9 +89,9 @@ func NewTimeRotationWriter(c *conf.ZapConf, level, levelDir string) *TimeRotatio
 	// 配置lumberjack日志切割器
 	lumberjackLogger := &lumberjack.Logger{
 		Filename:   logFilePath,
-		MaxSize:    c.MaxSize,
-		MaxAge:     c.MaxAge,
-		MaxBackups: c.MaxBackups,
+		MaxSize:    int(c.MaxSize),
+		MaxAge:     int(c.MaxAge),
+		MaxBackups: int(c.MaxBackups),
 		LocalTime:  true,
 		Compress:   c.Compress,
 	}

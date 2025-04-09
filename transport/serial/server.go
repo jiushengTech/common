@@ -42,11 +42,11 @@ func (s *Server) Start(ctx context.Context) error {
 	// 打开串口
 	conn, err := serial.Open(s.OpenOptions)
 	if err != nil {
-		logger.Log.Error("open serial fail:", err)
+		logger.Slog.Error("open serial fail:", err)
 		return nil
 	}
 	s.Conn = conn
-	logger.Log.Infof("[serial] server listening on: %s", s.PortName)
+	logger.Slog.Info("[serial] server listening on: %s", s.PortName)
 	return err
 }
 
