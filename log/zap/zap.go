@@ -80,10 +80,10 @@ func GetEncoderConfig(c *conf.ZapConf, forConsole bool) zapcore.EncoderConfig {
 	}
 
 	if forConsole {
-		// 控制台输出使用彩色编码器
-		encConfig.EncodeLevel = GetZapEncodeLevel(c.EncodeLevel)
+		// 控制台输出支持彩色编码器
+		encConfig.EncodeLevel = getZapEncodeLevel(c.EncodeLevel)
 	} else {
-		// 文件输出使用非彩色编码器
+		// 文件输出排除彩色编码器
 		encConfig.EncodeLevel = getNonColorEncoder(c.EncodeLevel)
 	}
 
@@ -92,6 +92,7 @@ func GetEncoderConfig(c *conf.ZapConf, forConsole bool) zapcore.EncoderConfig {
 
 // getNonColorEncoder 获取非彩色级别编码器
 func getNonColorEncoder(encodeLevel string) zapcore.LevelEncoder {
+	// 无论输入是彩色还是非彩色编码器选项，都返回对应的非彩色版本
 	switch encodeLevel {
 	case "LowercaseColorLevelEncoder", "LowercaseLevelEncoder":
 		return zapcore.LowercaseLevelEncoder
@@ -141,8 +142,12 @@ func createFileCore(c *conf.ZapConf, level zapcore.Level, levelFunc zap.LevelEna
 
 // createConsoleCore 创建控制台输出的Core
 func createConsoleCore(c *conf.ZapConf, levelFunc zap.LevelEnablerFunc) zapcore.Core {
+	isColorful := true
+	if strings.ToLower(c.Format) == "json" {
+		isColorful = false // JSON 格式不使用彩色编码器，避免乱码
+	}
 	return zapcore.NewCore(
-		GetEncoder(c, true),
+		GetEncoder(c, isColorful),
 		zapcore.AddSync(os.Stdout),
 		levelFunc,
 	)
@@ -175,8 +180,8 @@ func GetLevelPriority(level zapcore.Level) zap.LevelEnablerFunc {
 	}
 }
 
-// GetZapEncodeLevel 获取zap日志级别编码器
-func GetZapEncodeLevel(encodeLevel string) zapcore.LevelEncoder {
+// getZapEncodeLevel 获取zap日志级别编码器
+func getZapEncodeLevel(encodeLevel string) zapcore.LevelEncoder {
 	switch encodeLevel {
 	case "LowercaseLevelEncoder":
 		return zapcore.LowercaseLevelEncoder
