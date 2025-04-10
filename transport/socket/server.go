@@ -20,11 +20,10 @@ var (
 type Server struct {
 	mu            sync.Mutex
 	Conns         map[string]net.Conn // 存储连接
-	Client        net.Conn
 	err           error
 	network       string
 	address       string
-	targetAddr    string
+	targetAddr    []string // 支持多个目标地址
 	timeout       time.Duration
 	deadline      time.Duration
 	readDeadline  time.Duration
@@ -146,50 +145,35 @@ func (s *Server) Stop(ctx context.Context) error {
 		delete(s.Conns, addr)
 	}
 
-	// 关闭客户端连接
-	if s.Client != nil {
-		if err := s.Client.Close(); err != nil && lastErr == nil {
-			lastErr = err
-		}
-		s.Client = nil
-	}
-
 	return lastErr
 }
 
-// Send sends data to the target address.
-func (s *Server) Send(data []byte) (int, error) {
-	// 如果已经连接，直接发送
-	if s.Client != nil {
-		return s.sendData(data)
-	}
-
-	// 否则，先建立连接再发送
-	var err error
-	switch s.network {
-	case "tcp", "udp":
-		s.Client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
-	default:
-		return 0, errors.New("unsupported network type")
-	}
-	if err != nil {
-		return 0, err
-	}
-	return s.sendData(data)
-}
-
-// sendData sends data using the established connection.
-func (s *Server) sendData(data []byte) (int, error) {
+// Broadcast sends data to all target addresses.
+func (s *Server) Broadcast(data []byte) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	if s.Client == nil {
-		return 0, errors.New("client connection is not established")
+	var totalSent int
+	var lastErr error
+
+	// 遍历所有目标地址，向每个地址发送数据
+	for _, target := range s.targetAddr {
+		conn, err := net.DialTimeout(s.network, target, s.timeout)
+		if err != nil {
+			lastErr = err
+			continue
+		}
+		n, err := conn.Write(data)
+		if err != nil {
+			lastErr = err
+		} else {
+			totalSent += n
+		}
+		conn.Close() // 发送完毕后关闭连接
 	}
 
-	i, err := s.Client.Write(data)
-	if err != nil {
-		return 0, err
+	if lastErr != nil {
+		return totalSent, lastErr
 	}
-	return i, nil
+	return totalSent, nil
 }
