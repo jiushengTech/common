@@ -3,6 +3,7 @@ package socket
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net"
 	"net/url"
 	"sync"
@@ -38,17 +39,20 @@ func NewServer(opts ...ServerOption) *Server {
 	return srv
 }
 
-// init applies the options to the Server.
+// init 应用配置选项
 func (s *Server) init(opts ...ServerOption) {
 	for _, o := range opts {
 		o(s)
 	}
+	if s.network == "" {
+		s.network = "tcp"
+	}
 }
 
-// listen starts listening on the specified network and address.
+// listen 启动监听服务
 func (s *Server) listen() error {
 	if s.address == "" {
-		return errors.New("socket初始化失败, address为空")
+		return errors.New("socket 初始化失败: address 为空")
 	}
 
 	s.mu.Lock()
@@ -60,75 +64,73 @@ func (s *Server) listen() error {
 	case "udp":
 		return s.listenUDP()
 	default:
-		return errors.New("unsupported network type")
+		return fmt.Errorf("不支持的网络类型: %s", s.network)
 	}
 }
 
-// listenTCP 在 TCP 网络上开始监听。
+// listenTCP 在 TCP 网络上开始监听
 func (s *Server) listenTCP() error {
 	addr, err := net.ResolveTCPAddr(s.network, s.address)
 	if err != nil {
-		return err
+		return fmt.Errorf("解析 TCP 地址失败: %w", err)
 	}
 	tcp, err := net.ListenTCP(s.network, addr)
 	if err != nil {
-		return err
+		return fmt.Errorf("TCP 监听失败: %w", err)
 	}
 	s.tcpListener = tcp
 	return nil
 }
 
-// listenUDP 在 UDP 网络上开始监听。
+// listenUDP 在 UDP 网络上开始监听
 func (s *Server) listenUDP() error {
-	udpAddr, err := net.ResolveUDPAddr(s.network, s.address)
+	addr, err := net.ResolveUDPAddr(s.network, s.address)
 	if err != nil {
-		return err
+		return fmt.Errorf("解析 UDP 地址失败: %w", err)
 	}
-	s.udpConn, err = net.ListenUDP(s.network, udpAddr)
+	udp, err := net.ListenUDP(s.network, addr)
 	if err != nil {
-		return err
+		return fmt.Errorf("UDP 监听失败: %w", err)
 	}
-
+	s.udpConn = udp
+	if s.readDeadline > 0 {
+		_ = s.udpConn.SetReadDeadline(time.Now().Add(s.readDeadline))
+	}
 	return nil
 }
 
-// Endpoint returns the URL endpoint for the server.
+// Endpoint 返回 Server 的 URL 形式
 func (s *Server) Endpoint() (*url.URL, error) {
 	addr := "socket://" + s.address
 	return url.Parse(addr)
 }
 
-// Start starts the server and begins listening for incoming connections.
+// Start 启动服务
 func (s *Server) Start(ctx context.Context) error {
 	return s.listen()
 }
 
-// Stop stops the server by closing the connection.
-// Stop stops the server by closing the connection and cleaning up resources.
+// Stop 停止服务并释放资源
 func (s *Server) Stop(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// 关闭 TCP 监听器
 	if s.tcpListener != nil {
 		if err := s.tcpListener.Close(); err != nil {
 			return err
 		}
 		s.tcpListener = nil
 	}
-
-	// 关闭 UDP 连接
 	if s.udpConn != nil {
 		if err := s.udpConn.Close(); err != nil {
 			return err
 		}
 		s.udpConn = nil
 	}
-
 	return nil
 }
 
-// Broadcast sends data to all target addresses.
+// Broadcast 向所有目标地址广播数据
 func (s *Server) Broadcast(data []byte) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -136,19 +138,24 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 	var totalSent int
 	var lastErr error
 
-	// 遍历所有目标地址，向每个地址发送数据
 	for _, target := range s.targetAddr {
 		conn, err := net.DialTimeout(s.network, target, s.timeout)
 		if err != nil {
-			lastErr = err
+			lastErr = fmt.Errorf("连接目标 %s 失败: %w", target, err)
 			continue
 		}
-		n, err := conn.Write(data)
-		if err != nil {
-			lastErr = err
-		} else {
-			totalSent += n
-		}
+		func() {
+			defer conn.Close()
+			if s.deadline > 0 {
+				_ = conn.SetDeadline(time.Now().Add(s.deadline))
+			}
+			n, err := conn.Write(data)
+			if err != nil {
+				lastErr = fmt.Errorf("写入目标 %s 失败: %w", target, err)
+			} else {
+				totalSent += n
+			}
+		}()
 	}
 
 	if lastErr != nil {
@@ -157,20 +164,23 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 	return totalSent, nil
 }
 
-// SendTo sends data to a specific target address.
+// SendTo 向指定目标地址发送数据
 func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// 创建到指定 target 的连接
 	conn, err := net.DialTimeout(s.network, targetAddr, s.timeout)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("连接目标 %s 失败: %w", targetAddr, err)
 	}
-	// 发送数据
+	defer conn.Close()
+
+	if s.deadline > 0 {
+		_ = conn.SetDeadline(time.Now().Add(s.deadline))
+	}
 	n, err := conn.Write(data)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("写入目标 %s 失败: %w", targetAddr, err)
 	}
 	return n, nil
 }
