@@ -49,6 +49,14 @@ func (s *Server) init(opts ...ServerOption) {
 	}
 }
 
+func (s *Server) getTcpListener() *net.TCPListener {
+	return s.tcpListener
+}
+
+func (s *Server) getUdpConn() *net.UDPConn {
+	return s.udpConn
+}
+
 // listen 启动监听服务
 func (s *Server) listen() error {
 	if s.address == "" {
