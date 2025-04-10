@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net"
 	"net/url"
+	"sync"
 	"time"
 
 	"github.com/go-kratos/kratos/v2/transport"
@@ -15,9 +16,10 @@ var (
 	_ transport.Endpointer = (*Server)(nil)
 )
 
-// Server is a simple socket server.
+// Server 是一个简单的 socket 服务器。
 type Server struct {
-	Conn          net.Conn
+	mu            sync.Mutex
+	Conns         map[string]net.Conn // 存储连接
 	Client        net.Conn
 	err           error
 	network       string
@@ -29,10 +31,11 @@ type Server struct {
 	writeDeadline time.Duration
 }
 
-// NewServer creates a new Server with the provided options.
+// NewServer 使用提供的选项创建一个新的 Server。
 func NewServer(opts ...ServerOption) *Server {
 	srv := &Server{
 		timeout: 1 * time.Second,
+		Conns:   make(map[string]net.Conn), // 初始化 map
 	}
 	srv.init(opts...)
 	return srv
@@ -50,6 +53,10 @@ func (s *Server) listen() error {
 	if s.address == "" {
 		return errors.New("socket初始化失败, address为空")
 	}
+
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
 	switch s.network {
 	case "tcp":
 		return s.listenTCP()
@@ -60,7 +67,7 @@ func (s *Server) listen() error {
 	}
 }
 
-// listenTCP starts listening on a TCP network.
+// listenTCP 在 TCP 网络上开始监听。
 func (s *Server) listenTCP() error {
 	addr, err := net.ResolveTCPAddr(s.network, s.address)
 	if err != nil {
@@ -70,15 +77,27 @@ func (s *Server) listenTCP() error {
 	if err != nil {
 		return err
 	}
-	conn, err := tcp.AcceptTCP()
-	if err != nil {
-		return err
-	}
-	s.Conn = conn
+
+	// 接受连接并将其存储在 map 中
+	go func() {
+		for {
+			conn, err := tcp.AcceptTCP()
+			if err != nil {
+				// 记录错误，但不影响继续接受其他连接
+				s.err = err
+				continue
+			}
+			remoteAddr := conn.RemoteAddr().String()
+			s.mu.Lock()
+			s.Conns[remoteAddr] = conn
+			s.mu.Unlock()
+		}
+	}()
+
 	return nil
 }
 
-// listenUDP starts listening on a UDP network.
+// listenUDP 在 UDP 网络上开始监听。
 func (s *Server) listenUDP() error {
 	udpAddr, err := net.ResolveUDPAddr(s.network, s.address)
 	if err != nil {
@@ -88,7 +107,16 @@ func (s *Server) listenUDP() error {
 	if err != nil {
 		return err
 	}
-	s.Conn = udpConn
+
+	// 对于 UDP，RemoteAddr 可能为 nil，因此需要特殊处理
+	// 这里使用本地地址作为键
+	go func() {
+		localAddr := udpConn.LocalAddr().String()
+		s.mu.Lock()
+		s.Conns[localAddr] = udpConn
+		s.mu.Unlock()
+	}()
+
 	return nil
 }
 
@@ -105,26 +133,60 @@ func (s *Server) Start(ctx context.Context) error {
 
 // Stop stops the server by closing the connection.
 func (s *Server) Stop(ctx context.Context) error {
-	if s.Conn != nil {
-		return s.Conn.Close()
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	var lastErr error
+
+	// 关闭所有连接
+	for addr, conn := range s.Conns {
+		if err := conn.Close(); err != nil {
+			lastErr = err
+		}
+		delete(s.Conns, addr)
 	}
-	return nil
+
+	// 关闭客户端连接
+	if s.Client != nil {
+		if err := s.Client.Close(); err != nil && lastErr == nil {
+			lastErr = err
+		}
+		s.Client = nil
+	}
+
+	return lastErr
 }
 
 // Send sends data to the target address.
 func (s *Server) Send(data []byte) (int, error) {
-	if s.Client == nil {
-		var err error
-		switch s.network {
-		case "tcp", "udp":
-			s.Client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
-		default:
-			return 0, errors.New("unsupported network type")
-		}
-		if err != nil {
-			return 0, err
-		}
+	// 如果已经连接，直接发送
+	if s.Client != nil {
+		return s.sendData(data)
 	}
+
+	// 否则，先建立连接再发送
+	var err error
+	switch s.network {
+	case "tcp", "udp":
+		s.Client, err = net.DialTimeout(s.network, s.targetAddr, s.timeout)
+	default:
+		return 0, errors.New("unsupported network type")
+	}
+	if err != nil {
+		return 0, err
+	}
+	return s.sendData(data)
+}
+
+// sendData sends data using the established connection.
+func (s *Server) sendData(data []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.Client == nil {
+		return 0, errors.New("client connection is not established")
+	}
+
 	i, err := s.Client.Write(data)
 	if err != nil {
 		return 0, err
