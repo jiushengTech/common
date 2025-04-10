@@ -19,8 +19,9 @@ var (
 // Server 是一个简单的 socket 服务器。
 type Server struct {
 	mu            sync.Mutex
-	Conns         map[string]net.Conn // 存储连接
 	err           error
+	tcpListener   *net.TCPListener
+	udpConn       *net.UDPConn
 	network       string
 	address       string
 	targetAddr    []string // 支持多个目标地址
@@ -32,10 +33,7 @@ type Server struct {
 
 // NewServer 使用提供的选项创建一个新的 Server。
 func NewServer(opts ...ServerOption) *Server {
-	srv := &Server{
-		timeout: 1 * time.Second,
-		Conns:   make(map[string]net.Conn), // 初始化 map
-	}
+	srv := &Server{}
 	srv.init(opts...)
 	return srv
 }
@@ -76,23 +74,7 @@ func (s *Server) listenTCP() error {
 	if err != nil {
 		return err
 	}
-
-	// 接受连接并将其存储在 map 中
-	go func() {
-		for {
-			conn, err := tcp.AcceptTCP()
-			if err != nil {
-				// 记录错误，但不影响继续接受其他连接
-				s.err = err
-				continue
-			}
-			remoteAddr := conn.RemoteAddr().String()
-			s.mu.Lock()
-			s.Conns[remoteAddr] = conn
-			s.mu.Unlock()
-		}
-	}()
-
+	s.tcpListener = tcp
 	return nil
 }
 
@@ -102,19 +84,10 @@ func (s *Server) listenUDP() error {
 	if err != nil {
 		return err
 	}
-	udpConn, err := net.ListenUDP(s.network, udpAddr)
+	s.udpConn, err = net.ListenUDP(s.network, udpAddr)
 	if err != nil {
 		return err
 	}
-
-	// 对于 UDP，RemoteAddr 可能为 nil，因此需要特殊处理
-	// 这里使用本地地址作为键
-	go func() {
-		localAddr := udpConn.LocalAddr().String()
-		s.mu.Lock()
-		s.Conns[localAddr] = udpConn
-		s.mu.Unlock()
-	}()
 
 	return nil
 }
@@ -131,21 +104,28 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 // Stop stops the server by closing the connection.
+// Stop stops the server by closing the connection and cleaning up resources.
 func (s *Server) Stop(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	var lastErr error
-
-	// 关闭所有连接
-	for addr, conn := range s.Conns {
-		if err := conn.Close(); err != nil {
-			lastErr = err
+	// 关闭 TCP 监听器
+	if s.tcpListener != nil {
+		if err := s.tcpListener.Close(); err != nil {
+			return err
 		}
-		delete(s.Conns, addr)
+		s.tcpListener = nil
 	}
 
-	return lastErr
+	// 关闭 UDP 连接
+	if s.udpConn != nil {
+		if err := s.udpConn.Close(); err != nil {
+			return err
+		}
+		s.udpConn = nil
+	}
+
+	return nil
 }
 
 // Broadcast sends data to all target addresses.
