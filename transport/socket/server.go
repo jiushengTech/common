@@ -177,3 +177,23 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 	}
 	return totalSent, nil
 }
+
+// SendTo sends data to a specific target address.
+func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	// 创建到指定 target 的连接
+	conn, err := net.DialTimeout(s.network, targetAddr, s.timeout)
+	if err != nil {
+		return 0, err
+	}
+	defer conn.Close()
+
+	// 发送数据
+	n, err := conn.Write(data)
+	if err != nil {
+		return 0, err
+	}
+	return n, nil
+}
