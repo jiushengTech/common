@@ -49,7 +49,7 @@ func (s *Server) init(opts ...ServerOption) {
 	}
 }
 
-func (s *Server) getTcpListener() *net.TCPListener {
+func (s *Server) GetTcpListener() *net.TCPListener {
 	return s.tcpListener
 }
 
