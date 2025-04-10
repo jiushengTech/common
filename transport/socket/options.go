@@ -32,7 +32,7 @@ func WithTimeout(timeout time.Duration) ServerOption {
 
 func WithTargetAddr(targetAddr []string) ServerOption {
 	return func(s *Server) {
-		s.targetAddr = targetAddr
+		s.targetAddrs = targetAddr
 	}
 }
 
