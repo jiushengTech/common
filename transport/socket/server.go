@@ -169,7 +169,6 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 		} else {
 			totalSent += n
 		}
-		conn.Close() // 发送完毕后关闭连接
 	}
 
 	if lastErr != nil {
@@ -188,8 +187,6 @@ func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	defer conn.Close()
-
 	// 发送数据
 	n, err := conn.Write(data)
 	if err != nil {

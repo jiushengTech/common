@@ -13,6 +13,7 @@ import (
 	"github.com/jiushengTech/common/broker"
 	"github.com/jiushengTech/common/broker/mqtt"
 	"github.com/jiushengTech/common/keepalive"
+	klog "github.com/jiushengTech/common/log/klog/logger"
 )
 
 var (
@@ -84,7 +85,7 @@ func (s *Server) Start(ctx context.Context) error {
 
 	s.err = s.Init()
 	if s.err != nil {
-		LogErrorf("init broker failed: [%s]", s.err.Error())
+		klog.Log.Errorf("init broker failed: [%s]", s.err.Error())
 		return s.err
 	}
 
@@ -99,7 +100,7 @@ func (s *Server) Start(ctx context.Context) error {
 		}()
 	}
 
-	LogInfof("server listening on: %s", s.Address())
+	klog.Log.Infof("server listening on: %s", s.Address())
 
 	s.err = s.doRegisterSubscriberMap()
 	if s.err != nil {
@@ -113,7 +114,7 @@ func (s *Server) Start(ctx context.Context) error {
 }
 
 func (s *Server) Stop(_ context.Context) error {
-	LogInfo("server stopping")
+	klog.Log.Infof("server stopping")
 	s.started.Store(false)
 	return s.Disconnect()
 }
