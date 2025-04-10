@@ -53,7 +53,7 @@ func (s *Server) GetTcpListener() *net.TCPListener {
 	return s.tcpListener
 }
 
-func (s *Server) getUdpConn() *net.UDPConn {
+func (s *Server) GetUdpConn() *net.UDPConn {
 	return s.udpConn
 }
 
