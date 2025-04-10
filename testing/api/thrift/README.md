@@ -44,8 +44,8 @@ thrift --gen <language> <Thrift filename>
 thrift -r --gen <language> <Thrift filename>
 
 # 示例
-thrift -r --gen go:package_prefix=github.com/tx7do/kratos-transport/testing/api/thrift/gen-go/ shared.thrift
-thrift -r --gen go:package_prefix=github.com/tx7do/kratos-transport/testing/api/thrift/gen-go/ tutorial.thrift
-thrift -r --gen go:package_prefix=github.com/tx7do/kratos-transport/testing/api/thrift/gen-go/ echo.thrift
-thrift -r --gen go:package_prefix=github.com/tx7do/kratos-transport/testing/api/thrift/gen-go/ hygrothermograph.thrift
+thrift -r --gen go:package_prefix=github.com/jiushengTech/common/testing/api/thrift/gen-go/ shared.thrift
+thrift -r --gen go:package_prefix=github.com/jiushengTech/common/testing/api/thrift/gen-go/ tutorial.thrift
+thrift -r --gen go:package_prefix=github.com/jiushengTech/common/testing/api/thrift/gen-go/ echo.thrift
+thrift -r --gen go:package_prefix=github.com/jiushengTech/common/testing/api/thrift/gen-go/ hygrothermograph.thrift
 ```
