@@ -17,6 +17,7 @@ type UDPServer struct {
 	closed     bool
 	closedChan chan struct{}
 	udpConn    *net.UDPConn
+	isStarted  bool
 }
 
 var (
@@ -36,7 +37,11 @@ func NewUDPServer(opts ...Option) *UDPServer {
 }
 
 func (s *UDPServer) GetUdpConn() *net.UDPConn {
-	return s.udpConn
+	for {
+		if s.isStarted {
+			return s.udpConn
+		}
+	}
 }
 
 // Start 启动UDP服务器
@@ -53,6 +58,7 @@ func (s *UDPServer) Start(ctx context.Context) error {
 	if s.server.readDeadline > 0 {
 		_ = s.udpConn.SetReadDeadline(time.Now().Add(s.server.readDeadline))
 	}
+	s.isStarted = true
 	return nil
 }
 

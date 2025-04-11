@@ -16,6 +16,7 @@ type TCPServer struct {
 	closed      bool
 	closedChan  chan struct{}
 	tcpListener *net.TCPListener
+	isStarted   bool
 }
 
 var (
@@ -24,7 +25,11 @@ var (
 )
 
 func (s *TCPServer) GetTcpListener() *net.TCPListener {
-	return s.tcpListener
+	for {
+		if s.isStarted {
+			return s.tcpListener
+		}
+	}
 }
 
 // NewTCPServer 创建TCP服务器
@@ -47,6 +52,7 @@ func (s *TCPServer) Start(ctx context.Context) error {
 		return fmt.Errorf("TCP 监听失败: %w", err)
 	}
 	s.tcpListener = tcp
+	s.isStarted = true
 	return nil
 }
 
