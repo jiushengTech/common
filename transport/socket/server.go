@@ -22,6 +22,7 @@ type Server struct {
 	BufferSize int32
 	//  设置最大连接数
 	MaxConns int32
+	connPool *ConnectionPool
 }
 
 // NewServer 使用提供的选项创建一个新的 Server。
@@ -47,9 +48,6 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 	s.mu.Lock()
 	targets := make([]string, len(s.targetAddr))
 	copy(targets, s.targetAddr)
-	network := s.network
-	timeout := s.timeout
-	deadline := s.deadline
 	s.mu.Unlock()
 
 	if len(targets) == 0 {
@@ -67,17 +65,35 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 		go func(addr string) {
 			defer wg.Done()
 
-			conn, err := net.DialTimeout(network, addr, timeout)
+			var conn net.Conn
+			var err error
+
+			if s.network == "udp" {
+				// UDP 不需要连接池，发送完即关闭
+				raddr, err := net.ResolveUDPAddr("udp", addr)
+				if err != nil {
+					mu.Lock()
+					errors = append(errors, fmt.Errorf("解析目标 %s 地址失败: %w", addr, err))
+					mu.Unlock()
+					return
+				}
+
+				conn, err = net.DialUDP("udp", nil, raddr)
+			} else {
+				// TCP 连接复用（与之前的逻辑相同）
+				conn, err = net.DialTimeout(s.network, addr, s.timeout)
+			}
+
 			if err != nil {
 				mu.Lock()
 				errors = append(errors, fmt.Errorf("连接目标 %s 失败: %w", addr, err))
 				mu.Unlock()
 				return
 			}
-
 			defer conn.Close()
-			if deadline > 0 {
-				_ = conn.SetDeadline(time.Now().Add(deadline))
+
+			if s.deadline > 0 {
+				_ = conn.SetDeadline(time.Now().Add(s.deadline))
 			}
 
 			n, err := conn.Write(data)
@@ -117,21 +133,49 @@ func (s *Server) Broadcast(data []byte) (int, error) {
 
 // SendTo 向指定目标地址发送数据
 func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
-	// 先获取所需的配置信息，避免长时间持有锁
 	s.mu.Lock()
-	network := s.network
-	timeout := s.timeout
-	deadline := s.deadline
 	s.mu.Unlock()
 
-	conn, err := net.DialTimeout(network, targetAddr, timeout)
-	if err != nil {
-		return 0, fmt.Errorf("连接目标 %s 失败: %w", targetAddr, err)
-	}
-	defer conn.Close()
+	if s.network == "udp" {
+		// --- UDP 简洁发送，不入连接池 ---
+		raddr, err := net.ResolveUDPAddr("udp", targetAddr)
+		if err != nil {
+			return 0, fmt.Errorf("解析目标地址失败: %w", err)
+		}
 
-	if deadline > 0 {
-		_ = conn.SetDeadline(time.Now().Add(deadline))
+		conn, err := net.DialUDP("udp", nil, raddr)
+		if err != nil {
+			return 0, fmt.Errorf("连接目标 %s 失败: %w", targetAddr, err)
+		}
+		defer conn.Close()
+
+		if s.deadline > 0 {
+			_ = conn.SetDeadline(time.Now().Add(s.deadline))
+		}
+
+		n, err := conn.Write(data)
+		if err != nil {
+			return 0, fmt.Errorf("写入目标 %s 失败: %w", targetAddr, err)
+		}
+		return n, nil
+	}
+
+	// --- TCP 情况，走连接池 ---
+	conn, err := s.connPool.GetConn(s.network, s.address, s.timeout)
+	if err != nil {
+		return 0, err
+	}
+	if conn == nil {
+		conn, err = net.DialTimeout(s.network, targetAddr, s.timeout)
+		if err != nil {
+			return 0, fmt.Errorf("连接目标 %s 失败: %w", targetAddr, err)
+		}
+		s.connPool.PutConn(conn)
+	}
+
+	if s.deadline > 0 {
+		err = conn.SetDeadline(time.Now().Add(s.deadline))
+		return 0, err
 	}
 	n, err := conn.Write(data)
 	if err != nil {

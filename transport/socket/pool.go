@@ -31,8 +31,8 @@ func NewConnectionPool(maxConns int) *ConnectionPool {
 	}
 }
 
-// Get 获取连接
-func (p *ConnectionPool) Get(network, address string, timeout time.Duration) (net.Conn, error) {
+// GetConn 获取连接
+func (p *ConnectionPool) GetConn(network, address string, timeout time.Duration) (net.Conn, error) {
 	key := connKey{network: network, address: address}
 
 	p.mu.Lock()
@@ -53,8 +53,8 @@ func (p *ConnectionPool) Get(network, address string, timeout time.Duration) (ne
 	return conn, nil
 }
 
-// Put 归还连接
-func (p *ConnectionPool) Put(conn net.Conn) {
+// PutConn 归还连接
+func (p *ConnectionPool) PutConn(conn net.Conn) {
 	if conn == nil {
 		return
 	}

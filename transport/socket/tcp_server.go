@@ -13,7 +13,6 @@ import (
 type TCPServer struct {
 	mu          sync.RWMutex
 	server      *Server
-	connPool    *ConnectionPool
 	closed      bool
 	closedChan  chan struct{}
 	tcpListener *net.TCPListener
