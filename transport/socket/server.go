@@ -19,9 +19,9 @@ type Server struct {
 	readDeadline  time.Duration
 	writeDeadline time.Duration
 	//  设置缓冲区大小
-	BufferSize int32
+	bufferSize int
 	//  设置最大连接数
-	MaxConns int32
+	maxConns int
 	connPool *ConnectionPool
 }
 
@@ -39,6 +39,9 @@ func (s *Server) init(opts ...Option) {
 	}
 	if s.network == "" {
 		s.network = "tcp"
+	}
+	if s.connPool == nil {
+		s.connPool = NewConnectionPool(s.maxConns)
 	}
 }
 

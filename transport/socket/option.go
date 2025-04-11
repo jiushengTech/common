@@ -47,15 +47,15 @@ func WithWriteDeadline(writeDeadline time.Duration) Option {
 }
 
 // WithBufferSize 设置缓冲区大小
-func WithBufferSize(size int32) Option {
+func WithBufferSize(size int) Option {
 	return func(s *Server) {
-		s.BufferSize = size
+		s.bufferSize = size
 	}
 }
 
 // WithMaxConns 设置最大连接数
-func WithMaxConns(maxConns int32) Option {
+func WithMaxConns(maxConns int) Option {
 	return func(s *Server) {
-		s.MaxConns = maxConns
+		s.maxConns = maxConns
 	}
 }
