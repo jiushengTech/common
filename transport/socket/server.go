@@ -109,7 +109,7 @@ func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
 	}
 
 	// --- TCP 情况，走连接池 ---
-	conn, err := s.connPool.GetConn(s.network, s.address, s.timeout)
+	conn, err := s.connPool.GetConn(s.network, targetAddr, s.timeout)
 	if err != nil {
 		return 0, err
 	}
