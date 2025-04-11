@@ -43,7 +43,6 @@ func (s *Server) init(opts ...Option) {
 }
 
 // Broadcast 向所有目标地址广播数据
-// Broadcast 向所有目标地址广播数据
 func (s *Server) Broadcast(data []byte) (int, error) {
 	s.mu.Lock()
 	targets := make([]string, len(s.targetAddr))
