@@ -32,7 +32,6 @@ func NewTCPServer(opts ...Option) *TCPServer {
 	server := NewServer(opts...)
 	return &TCPServer{
 		server:     server,
-		connPool:   NewConnectionPool(int(server.MaxConns)),
 		closedChan: make(chan struct{}),
 	}
 }
@@ -65,7 +64,7 @@ func (s *TCPServer) Stop(ctx context.Context) error {
 	close(s.closedChan)
 
 	// 释放连接池
-	s.connPool.Close()
+	s.server.connPool.Close()
 	if s.tcpListener != nil {
 		if err := s.tcpListener.Close(); err != nil {
 			return err
