@@ -47,7 +47,7 @@ func (p *ConnectionPool) GetConn(network, address string, timeout time.Duration)
 	// 如果没有可用连接，创建新连接
 	conn, err := net.DialTimeout(network, address, timeout)
 	if err != nil {
-		return nil, &NetworkError{Op: "创建连接", Err: err}
+		return nil, &NetworkError{Op: "创建连接失败", Err: err}
 	}
 	p.PutConn(conn)
 	return conn, nil
