@@ -49,7 +49,7 @@ func (p *ConnectionPool) GetConn(network, address string, timeout time.Duration)
 	if err != nil {
 		return nil, &NetworkError{Op: "创建连接", Err: err}
 	}
-
+	p.PutConn(conn)
 	return conn, nil
 }
 

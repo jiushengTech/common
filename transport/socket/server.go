@@ -165,14 +165,6 @@ func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
 	if err != nil {
 		return 0, err
 	}
-	if conn == nil {
-		conn, err = net.DialTimeout(s.network, targetAddr, s.timeout)
-		if err != nil {
-			return 0, fmt.Errorf("连接目标 %s 失败: %w", targetAddr, err)
-		}
-		s.connPool.PutConn(conn)
-	}
-
 	if s.deadline > 0 {
 		err = conn.SetDeadline(time.Now().Add(s.deadline))
 		return 0, err
