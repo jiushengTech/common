@@ -43,92 +43,38 @@ func (s *Server) init(opts ...Option) {
 }
 
 // Broadcast 向所有目标地址广播数据
+// Broadcast 向所有目标地址广播数据
 func (s *Server) Broadcast(data []byte) (int, error) {
-	// 先获取所需的配置信息，避免长时间持有锁
 	s.mu.Lock()
 	targets := make([]string, len(s.targetAddr))
 	copy(targets, s.targetAddr)
 	s.mu.Unlock()
 
 	if len(targets) == 0 {
-		return 0, fmt.Errorf("没有设置目标地址")
+		return 0, fmt.Errorf("没有可广播的目标地址")
 	}
 
-	var totalSent int
-	var errors []error
-	var wg sync.WaitGroup
-	var mu sync.Mutex
+	var totalBytes int
+	errorMap := make(map[string]error) // 使用map存储每个地址的错误
 
-	// 并发发送数据
 	for _, target := range targets {
-		wg.Add(1)
-		go func(addr string) {
-			defer wg.Done()
-
-			var conn net.Conn
-			var err error
-
-			if s.network == "udp" {
-				// UDP 不需要连接池，发送完即关闭
-				raddr, err := net.ResolveUDPAddr("udp", addr)
-				if err != nil {
-					mu.Lock()
-					errors = append(errors, fmt.Errorf("解析目标 %s 地址失败: %w", addr, err))
-					mu.Unlock()
-					return
-				}
-
-				conn, err = net.DialUDP("udp", nil, raddr)
-			} else {
-				// TCP 连接复用（与之前的逻辑相同）
-				conn, err = net.DialTimeout(s.network, addr, s.timeout)
-			}
-
-			if err != nil {
-				mu.Lock()
-				errors = append(errors, fmt.Errorf("连接目标 %s 失败: %w", addr, err))
-				mu.Unlock()
-				return
-			}
-			defer conn.Close()
-
-			if s.deadline > 0 {
-				_ = conn.SetDeadline(time.Now().Add(s.deadline))
-			}
-
-			n, err := conn.Write(data)
-
-			mu.Lock()
-			if err != nil {
-				errors = append(errors, fmt.Errorf("写入目标 %s 失败: %w", addr, err))
-			} else {
-				totalSent += n
-			}
-			mu.Unlock()
-		}(target)
-	}
-
-	wg.Wait()
-
-	// 处理错误
-	if len(errors) > 0 {
-		var errMsg string
-		if len(errors) == 1 {
-			errMsg = errors[0].Error()
-		} else {
-			errMsg = fmt.Sprintf("广播时发生了 %d 个错误:", len(errors))
-			for i, err := range errors {
-				if i < 3 || i == len(errors)-1 { // 只显示前3个和最后一个错误
-					errMsg += "\n- " + err.Error()
-				} else if i == 3 {
-					errMsg += fmt.Sprintf("\n- 还有 %d 个错误...", len(errors)-4)
-				}
-			}
+		n, err := s.SendTo(target, data)
+		totalBytes += n
+		if err != nil {
+			errorMap[target] = err
 		}
-		return totalSent, fmt.Errorf(errMsg)
 	}
 
-	return totalSent, nil
+	// 如果有错误发生，将所有错误组合成一个
+	if len(errorMap) > 0 {
+		var errMsg string
+		for target, err := range errorMap {
+			errMsg += fmt.Sprintf("目标 [%s]: %v; ", target, err)
+		}
+		return totalBytes, fmt.Errorf("广播部分失败: %s", errMsg)
+	}
+
+	return totalBytes, nil
 }
 
 // SendTo 向指定目标地址发送数据
