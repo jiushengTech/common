@@ -9,14 +9,12 @@ import (
 type Client struct {
 	mqtt.Client
 	subscriptions *sync.Map // 使用sync.Map来替代map
-	opts          *mqtt.ClientOptions
 }
 
 func NewClient(opts *mqtt.ClientOptions) *Client {
 	srv := &Client{
 		Client:        mqtt.NewClient(opts),
 		subscriptions: &sync.Map{},
-		opts:          opts,
 	}
 	return srv
 }
@@ -34,7 +32,7 @@ func (c *Client) Subscribe(topic string, qos byte, callback mqtt.MessageHandler)
 	}
 
 	// 使用sync.Map存储订阅信息，避免频繁创建新的map
-	subscriptions, _ := c.subscriptions.LoadOrStore(c.opts.ClientID, &sync.Map{})
+	subscriptions, _ := c.subscriptions.LoadOrStore(c.Client.OptionsReader().ClientID, &sync.Map{})
 	subscriptions.(*sync.Map).Store(topic, qos)
 
 	klog.Log.Infof("成功订阅主题: %s (QoS: %d)", topic, qos)
@@ -50,7 +48,7 @@ func (c *Client) Unsubscribe(topic string) error {
 	}
 
 	// 使用sync.Map移除订阅信息
-	subscriptions, ok := c.subscriptions.Load(c.opts.ClientID)
+	subscriptions, ok := c.subscriptions.Load(c.Client.OptionsReader().ClientID)
 	if ok {
 		subscriptions.(*sync.Map).Delete(topic)
 	}
