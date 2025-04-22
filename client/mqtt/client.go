@@ -20,6 +20,9 @@ func NewClient(opts *mqtt.ClientOptions) *Client {
 }
 
 func (c *Client) GetSubscriptions() *sync.Map {
+	if c.subscriptions == nil {
+		return &sync.Map{}
+	}
 	return c.subscriptions
 }
 
