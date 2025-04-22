@@ -8,16 +8,21 @@ import (
 
 type Client struct {
 	mqtt.Client
-	subscriptions sync.Map // 使用sync.Map来替代map
-	brokerAddress string
+	subscriptions *sync.Map // 使用sync.Map来替代map
+	opts          *mqtt.ClientOptions
 }
 
-func NewClient(opts *mqtt.ClientOptions, brokerAddress string) *Client {
+func NewClient(opts *mqtt.ClientOptions) *Client {
 	srv := &Client{
 		Client:        mqtt.NewClient(opts),
-		brokerAddress: brokerAddress,
+		subscriptions: &sync.Map{},
+		opts:          opts,
 	}
 	return srv
+}
+
+func (c *Client) GetSubscriptions() *sync.Map {
+	return c.subscriptions
 }
 
 // Subscribe 订阅主题，并保存订阅信息以便断线重连时恢复
@@ -25,11 +30,11 @@ func (c *Client) Subscribe(topic string, qos byte, callback mqtt.MessageHandler)
 	// 订阅主题
 	token := c.Client.Subscribe(topic, qos, callback)
 	if token.Wait() && token.Error() != nil {
-		return token.Error()
+		return token.Error() // 返回订阅错误
 	}
 
-	// 使用sync.Map存储订阅信息
-	subscriptions, _ := c.subscriptions.LoadOrStore(c.brokerAddress, &sync.Map{})
+	// 使用sync.Map存储订阅信息，避免频繁创建新的map
+	subscriptions, _ := c.subscriptions.LoadOrStore(c.opts.ClientID, &sync.Map{})
 	subscriptions.(*sync.Map).Store(topic, qos)
 
 	klog.Log.Infof("成功订阅主题: %s (QoS: %d)", topic, qos)
@@ -41,12 +46,12 @@ func (c *Client) Unsubscribe(topic string) error {
 	// 取消订阅主题
 	token := c.Client.Unsubscribe(topic)
 	if token.Wait() && token.Error() != nil {
-		return token.Error()
+		return token.Error() // 返回取消订阅错误
 	}
 
 	// 使用sync.Map移除订阅信息
-	subscriptions, _ := c.subscriptions.Load(c.brokerAddress)
-	if subscriptions != nil {
+	subscriptions, ok := c.subscriptions.Load(c.opts.ClientID)
+	if ok {
 		subscriptions.(*sync.Map).Delete(topic)
 	}
 
@@ -59,7 +64,7 @@ func (c *Client) Publish(topic string, qos byte, retained bool, payload interfac
 	// 发布消息
 	token := c.Client.Publish(topic, qos, retained, payload)
 	if token.Wait() && token.Error() != nil {
-		return token.Error()
+		return token.Error() // 返回发布消息错误
 	}
 
 	klog.Log.Infof("成功发布消息至主题: %s", topic)
