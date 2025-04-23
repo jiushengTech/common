@@ -37,24 +37,28 @@ type TimeRotationHook struct {
 
 // Write 写入日志，并检查是否需要轮转
 func (t *TimeRotationHook) Write(p []byte) (n int, err error) {
-	// 检查是否需要时间轮转
 	now := time.Now()
+	// 检查是否需要轮转
 	if now.After(t.RotationTracker.NextRotation) {
-		// 关闭当前日志文件
-		t.Lumberjack.Close()
-
-		// 生成新的文件名和下一次轮转时间
+		// 关闭旧文件（重要）
+		_ = t.Lumberjack.Close()
+		// 生成新文件名和轮转时间
 		logFileName, nextRotation := generateFileNameAndRotation(now, int(t.Config.TimeRotation), t.Level)
-
-		// 更新文件路径
-		t.Lumberjack.Filename = filepath.Join(t.LevelDir, logFileName)
-
-		// 更新轮转跟踪信息
+		logFilePath := filepath.Join(t.LevelDir, logFileName)
+		// 创建新的 lumberjack 实例
+		t.Lumberjack = &lumberjack.Logger{
+			Filename:   logFilePath,
+			MaxSize:    int(t.Config.MaxSize),
+			MaxAge:     int(t.Config.MaxAge),
+			MaxBackups: int(t.Config.MaxBackups),
+			LocalTime:  true,
+			Compress:   t.Config.Compress,
+		}
+		// 更新轮转状态
 		t.RotationTracker.CurrentFileName = logFileName
 		t.RotationTracker.NextRotation = nextRotation
 	}
-
-	// 写入日志
+	// 正常写入日志
 	return t.Lumberjack.Write(p)
 }
 

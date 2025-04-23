@@ -42,7 +42,7 @@ func DefaultZapLogger() *zap.Logger {
 		AddCallerSkip: 0,                            // 跳过调用栈的行数
 		LogInConsole:  true,                         // 是否在控制台输出日志
 		MaxSize:       10,                           // 每个日志文件的最大大小（单位：MB）
-		Compress:      true,                         // 是否压缩/归档旧日志文件
+		Compress:      false,                        // 是否压缩/归档旧日志文件
 		MaxBackups:    10,                           // 保留的旧日志文件的最大数量
 		TimeRotation:  RotateHourly,                 // 时间轮转类型: "0:minute", "1:hour" 或 "2:day"
 	})
