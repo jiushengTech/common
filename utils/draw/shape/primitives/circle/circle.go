@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/draw/shape/base"
 )
 
 // Circle 表示圆形图形

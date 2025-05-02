@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jiushengTech/common/utils/draw"
+	"github.com/jiushengTech/common/draw"
 )
 
 func TestDrawLines(t *testing.T) {
@@ -38,12 +38,12 @@ func TestDrawLines(t *testing.T) {
 			draw.WithOutputName("vertical_lines_center.png"),
 			draw.WithShape(vline),
 		)
-
 		// 处理图像
-		if err := processor.Process(); err != nil {
+		absPath, err := processor.Process()
+		if err != nil {
 			t.Errorf("绘制垂直线错误: %v", err)
 		} else {
-			fmt.Printf("成功生成垂直线图片(中间文本): %s/%s\n", processor.OutputDir, processor.Output)
+			fmt.Printf("成功生成垂直线图片(中间文本)，绝对路径: %s\n", absPath)
 		}
 	})
 
@@ -76,10 +76,11 @@ func TestDrawLines(t *testing.T) {
 		)
 
 		// 处理图像
-		if err := processor.Process(); err != nil {
+		absPath, err := processor.Process()
+		if err != nil {
 			t.Errorf("绘制垂直线错误: %v", err)
 		} else {
-			fmt.Printf("成功生成垂直线图片(顶部文本): %s/%s\n", processor.OutputDir, processor.Output)
+			fmt.Printf("成功生成垂直线图片(顶部文本)，绝对路径: %s\n", absPath)
 		}
 	})
 
@@ -112,10 +113,11 @@ func TestDrawLines(t *testing.T) {
 		)
 
 		// 处理图像
-		if err := processor.Process(); err != nil {
+		absPath, err := processor.Process()
+		if err != nil {
 			t.Errorf("绘制水平线错误: %v", err)
 		} else {
-			fmt.Printf("成功生成水平线图片(中间文本): %s/%s\n", processor.OutputDir, processor.Output)
+			fmt.Printf("成功生成水平线图片(中间文本)，绝对路径: %s\n", absPath)
 		}
 	})
 
@@ -148,10 +150,11 @@ func TestDrawLines(t *testing.T) {
 		)
 
 		// 处理图像
-		if err := processor.Process(); err != nil {
+		absPath, err := processor.Process()
+		if err != nil {
 			t.Errorf("绘制水平线错误: %v", err)
 		} else {
-			fmt.Printf("成功生成水平线图片(右侧文本): %s/%s\n", processor.OutputDir, processor.Output)
+			fmt.Printf("成功生成水平线图片(右侧文本)，绝对路径: %s\n", absPath)
 		}
 	})
 
@@ -205,10 +208,11 @@ func TestDrawLines(t *testing.T) {
 		)
 
 		// 处理图像
-		if err := processor.Process(); err != nil {
+		absPath, err := processor.Process()
+		if err != nil {
 			t.Errorf("绘制组合线条错误: %v", err)
 		} else {
-			fmt.Printf("成功生成不同文本位置线条组合图片: %s/%s\n", processor.OutputDir, processor.Output)
+			fmt.Printf("成功生成组合线条图片，绝对路径: %s\n", absPath)
 		}
 	})
 }

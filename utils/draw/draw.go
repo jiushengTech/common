@@ -4,13 +4,13 @@ package draw
 import (
 	"time"
 
-	"github.com/jiushengTech/common/utils/draw/processor"
-	"github.com/jiushengTech/common/utils/draw/shape"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
-	"github.com/jiushengTech/common/utils/draw/shape/path"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
+	"github.com/jiushengTech/common/draw/processor"
+	"github.com/jiushengTech/common/draw/shape"
+	"github.com/jiushengTech/common/draw/shape/base"
+	"github.com/jiushengTech/common/draw/shape/path"
+	"github.com/jiushengTech/common/draw/shape/primitives/circle"
+	"github.com/jiushengTech/common/draw/shape/primitives/line"
+	"github.com/jiushengTech/common/draw/shape/primitives/rectangle"
 )
 
 // 导出公共类型
@@ -258,6 +258,16 @@ func WithPostProcess(fn processor.ProcessFunc) ProcessorOption {
 // CleanupAllTempFiles 清理所有临时文件和目录
 func CleanupAllTempFiles() {
 	processor.CleanupAllTempFiles()
+}
+
+// GetAbsoluteOutputPath 获取图片输出的绝对路径
+func GetAbsoluteOutputPath(p *ImageProcessor) (string, error) {
+	return p.GetAbsoluteOutputPath()
+}
+
+// ProcessImage 处理图像，返回生成图片的绝对路径
+func ProcessImage(p *ImageProcessor) (string, error) {
+	return p.Process()
 }
 
 // 导出输出格式

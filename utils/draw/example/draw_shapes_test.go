@@ -6,7 +6,7 @@ import (
 
 	"github.com/fogleman/gg"
 
-	"github.com/jiushengTech/common/utils/draw"
+	"github.com/jiushengTech/common/draw"
 )
 
 func TestShapesDrawing(t *testing.T) {
@@ -90,10 +90,11 @@ func TestShapesDrawing(t *testing.T) {
 		draw.WithShapes(shapes),
 	)
 
-	if err := processor.Process(); err != nil {
+	absPath1, err := processor.Process()
+	if err != nil {
 		t.Errorf("绘制图形错误: %v", err)
 	} else {
-		fmt.Printf("成功生成包含多种图形的图片: %s/%s\n", processor.OutputDir, processor.Output)
+		fmt.Printf("成功生成包含多种图形的图片，绝对路径: %s\n", absPath1)
 	}
 
 	// 示例4：使用工厂模式创建图形
@@ -129,10 +130,11 @@ func TestShapesDrawing(t *testing.T) {
 		draw.WithShape(rectangle),
 	)
 
-	if err := processor2.Process(); err != nil {
+	absPath, err := processor2.Process()
+	if err != nil {
 		t.Errorf("绘制工厂创建的图形错误: %v", err)
 	} else {
-		fmt.Printf("成功生成工厂创建的图形: %s/%s\n", processor2.OutputDir, processor2.Output)
+		fmt.Printf("成功生成工厂创建的图形，绝对路径: %s\n", absPath)
 	}
 
 	// 示例5：使用新增的格式和质量选项
@@ -149,10 +151,11 @@ func TestShapesDrawing(t *testing.T) {
 		draw.WithShape(rect1),
 	)
 
-	if err := processor3.Process(); err != nil {
+	absPath3, err := processor3.Process()
+	if err != nil {
 		t.Errorf("生成JPEG图像失败: %v", err)
 	} else {
-		fmt.Printf("成功生成JPEG格式图像: %s/%s\n", processor3.OutputDir, processor3.Output)
+		fmt.Printf("成功生成JPEG格式图像，绝对路径: %s\n", absPath3)
 	}
 
 	// 示例6：使用预处理和后处理函数
@@ -217,10 +220,11 @@ func TestShapesDrawing(t *testing.T) {
 		}),
 	)
 
-	if err := processor4.Process(); err != nil {
+	absPath4, err := processor4.Process()
+	if err != nil {
 		t.Errorf("使用处理函数生成图像失败: %v", err)
 	} else {
-		fmt.Printf("成功生成处理后的图像: %s/%s\n", processor4.OutputDir, processor4.Output)
+		fmt.Printf("成功生成处理后的图像，绝对路径: %s\n", absPath4)
 	}
 
 	// 清理临时文件

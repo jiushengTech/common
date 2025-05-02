@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/draw/shape/base"
 
 	"github.com/fogleman/gg"
 )
@@ -241,11 +241,11 @@ func (p *ImageProcessor) Validate() error {
 	return nil
 }
 
-// Process 处理图像并绘制图形
-func (p *ImageProcessor) Process() error {
+// Process 处理图像并绘制图形，返回图片的绝对路径
+func (p *ImageProcessor) Process() (string, error) {
 	// 验证数据
 	if err := p.Validate(); err != nil {
-		return err
+		return "", err
 	}
 
 	// 处理图片路径，如果是URL则下载
@@ -254,7 +254,7 @@ func (p *ImageProcessor) Process() error {
 	if strings.HasPrefix(p.Path, "http://") || strings.HasPrefix(p.Path, "https://") {
 		localPath, err := downloadImage(p.Path, p.RequestTimeout)
 		if err != nil {
-			return fmt.Errorf("下载图片失败: %v", err)
+			return "", fmt.Errorf("下载图片失败: %v", err)
 		}
 		imagePath = localPath
 		isTemporaryFile = true
@@ -270,7 +270,7 @@ func (p *ImageProcessor) Process() error {
 	// 加载原图
 	sourceImage, err := gg.LoadImage(imagePath)
 	if err != nil {
-		return fmt.Errorf("加载图像 %s 失败: %v", imagePath, err)
+		return "", fmt.Errorf("加载图像 %s 失败: %v", imagePath, err)
 	}
 
 	// 获取原图尺寸
@@ -287,57 +287,80 @@ func (p *ImageProcessor) Process() error {
 	// 执行预处理函数（如果有）
 	if p.PreProcess != nil {
 		if err := p.PreProcess(dc, width, height); err != nil {
-			return fmt.Errorf("图像预处理失败: %v", err)
+			return "", fmt.Errorf("图像预处理失败: %v", err)
 		}
 	}
 
 	// 绘制每个图形
 	if err := p.drawShapes(dc, width, height); err != nil {
-		return err
+		return "", err
 	}
 
 	// 执行后处理函数（如果有）
 	if p.PostProcess != nil {
 		if err := p.PostProcess(dc, width, height); err != nil {
-			return fmt.Errorf("图像后处理失败: %v", err)
+			return "", fmt.Errorf("图像后处理失败: %v", err)
 		}
 	}
 
 	// 创建输出目录（如果不存在）
 	if err := os.MkdirAll(p.OutputDir, 0755); err != nil {
-		return fmt.Errorf("创建目录 %s 失败: %v", p.OutputDir, err)
+		return "", fmt.Errorf("创建目录 %s 失败: %v", p.OutputDir, err)
 	}
 
 	// 保存结果
 	outputPath := filepath.Join(p.OutputDir, p.Output)
 
 	// 根据格式保存文件
+	var saveErr error
 	switch p.Format {
 	case FormatPNG:
-		return dc.SavePNG(outputPath)
+		saveErr = dc.SavePNG(outputPath)
 	case FormatJPEG:
 		// 创建文件
 		file, err := os.Create(outputPath)
 		if err != nil {
-			return fmt.Errorf("创建JPEG文件失败: %v", err)
+			return "", fmt.Errorf("创建JPEG文件失败: %v", err)
 		}
 		defer file.Close()
 
 		// 使用jpeg库保存图像
 		img := dc.Image()
 		opt := jpeg.Options{Quality: p.JpegQuality}
-		if err := jpeg.Encode(file, img, &opt); err != nil {
-			return fmt.Errorf("保存JPEG文件失败: %v", err)
+		saveErr = jpeg.Encode(file, img, &opt)
+		if saveErr != nil {
+			saveErr = fmt.Errorf("保存JPEG文件失败: %v", saveErr)
 		}
-		return nil
 	default:
-		return fmt.Errorf("不支持的输出格式: %s", p.Format)
+		return "", fmt.Errorf("不支持的输出格式: %s", p.Format)
 	}
+
+	if saveErr != nil {
+		return "", saveErr
+	}
+
+	// 获取绝对路径并返回
+	absPath, err := p.GetAbsoluteOutputPath()
+	if err != nil {
+		return "", err
+	}
+
+	return absPath, nil
 }
 
 // GetOutputPath 获取完整的输出路径
 func (p *ImageProcessor) GetOutputPath() string {
 	return filepath.Join(p.OutputDir, p.Output)
+}
+
+// GetAbsoluteOutputPath 获取图片输出的绝对路径
+func (p *ImageProcessor) GetAbsoluteOutputPath() (string, error) {
+	relPath := p.GetOutputPath()
+	absPath, err := filepath.Abs(relPath)
+	if err != nil {
+		return "", fmt.Errorf("获取绝对路径失败: %v", err)
+	}
+	return absPath, nil
 }
 
 // drawShapes 绘制所有图形

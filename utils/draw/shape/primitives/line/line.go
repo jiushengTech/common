@@ -5,7 +5,7 @@ import (
 	"sort"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/draw/shape/base"
 	"golang.org/x/image/font/basicfont"
 )
 

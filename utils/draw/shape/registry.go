@@ -1,11 +1,11 @@
 package shape
 
 import (
-	"github.com/jiushengTech/common/utils/draw/shape/base"
-	"github.com/jiushengTech/common/utils/draw/shape/path"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
+	"github.com/jiushengTech/common/draw/shape/base"
+	"github.com/jiushengTech/common/draw/shape/path"
+	"github.com/jiushengTech/common/draw/shape/primitives/circle"
+	"github.com/jiushengTech/common/draw/shape/primitives/line"
+	"github.com/jiushengTech/common/draw/shape/primitives/rectangle"
 )
 
 // ShapeRegistry 图形注册表，用于注册和获取图形工厂

@@ -26,7 +26,7 @@ draw/
 ## 安装
 
 ```bash
-go get github.com/jiushengTech/common/utils/draw
+go get github.com/jiushengTech/common/draw
 ```
 
 ## 基本用法

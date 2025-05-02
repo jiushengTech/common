@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jiushengTech/common/utils/draw"
+	"github.com/jiushengTech/common/draw"
 )
 
 func TestPathDrawing(t *testing.T) {
@@ -89,10 +89,11 @@ func TestPathDrawing(t *testing.T) {
 	)
 
 	// 处理图像
-	if err := processor.Process(); err != nil {
+	absPath, err := processor.Process()
+	if err != nil {
 		t.Errorf("绘制路径错误: %v", err)
 	} else {
-		fmt.Printf("成功生成包含多个路径的图片: %s/%s\n", processor.OutputDir, processor.Output)
+		fmt.Printf("成功生成包含多个路径的图片，绝对路径: %s\n", absPath)
 	}
 
 	// 测试单独开关某个路径
@@ -108,9 +109,10 @@ func TestPathDrawing(t *testing.T) {
 		draw.WithShape(markerPath),
 	)
 
-	if err := processor2.Process(); err != nil {
+	absPath2, err := processor2.Process()
+	if err != nil {
 		t.Errorf("绘制部分路径错误: %v", err)
 	} else {
-		fmt.Printf("成功生成隐藏测量路径的图片: %s/%s\n", processor2.OutputDir, processor2.Output)
+		fmt.Printf("成功生成隐藏测量路径的图片，绝对路径: %s\n", absPath2)
 	}
 }
