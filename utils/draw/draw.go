@@ -9,6 +9,7 @@ import (
 	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"github.com/jiushengTech/common/utils/draw/shape/group"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
+	"github.com/jiushengTech/common/utils/draw/shape/primitives/hollowpolygon"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygon"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
@@ -169,6 +170,16 @@ func NewPolygon(points []Point, options ...ShapeOption) Shape {
 	return polygon.New(points, options...)
 }
 
+// NewHollowPolygon 创建一个镂空多边形
+// 参数:
+//
+//	outerPoints: 外部多边形的顶点数组，至少需要3个点
+//	innerPoints: 内部多边形的顶点数组，至少需要3个点
+//	options: 可选配置，如颜色、线宽、不透明度等
+func NewHollowPolygon(outerPoints, innerPoints []Point, options ...ShapeOption) Shape {
+	return hollowpolygon.New(outerPoints, innerPoints, options...)
+}
+
 // 颜色相关函数
 // -------------------------
 
@@ -243,6 +254,21 @@ func WithName(name string) ShapeOption {
 // WithPolygonFill 设置是否填充多边形
 func WithPolygonFill(fill bool) ShapeOption {
 	return polygon.WithFill(fill)
+}
+
+// WithHollowPolygonOpacity 设置镂空多边形的不透明度
+func WithHollowPolygonOpacity(opacity float64) ShapeOption {
+	return hollowpolygon.WithOpacity(opacity)
+}
+
+// WithOuterPoints 设置镂空多边形的外部顶点
+func WithOuterPoints(points []Point) ShapeOption {
+	return hollowpolygon.WithOuterPoints(points)
+}
+
+// WithInnerPoints 设置镂空多边形的内部顶点
+func WithInnerPoints(points []Point) ShapeOption {
+	return hollowpolygon.WithInnerPoints(points)
 }
 
 // 处理器配置选项函数

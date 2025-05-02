@@ -4,6 +4,7 @@ import (
 	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"github.com/jiushengTech/common/utils/draw/shape/group"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
+	"github.com/jiushengTech/common/utils/draw/shape/primitives/hollowpolygon"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygon"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
@@ -50,6 +51,9 @@ func DefaultRegistry() *ShapeRegistry {
 
 	// 注册多边形工厂
 	registry.Register("polygon", polygon.Factory{})
+
+	// 注册镂空多边形工厂
+	registry.Register("hollow_polygon", hollowpolygon.Factory{})
 
 	// 注册图形组工厂
 	registry.Register("shape_group", group.Factory{Name: "default_group"})
