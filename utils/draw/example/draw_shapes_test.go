@@ -6,7 +6,7 @@ import (
 
 	"github.com/fogleman/gg"
 
-	"github.com/jiushengTech/common/draw"
+	"github.com/jiushengTech/common/utils/draw"
 )
 
 func TestShapesDrawing(t *testing.T) {

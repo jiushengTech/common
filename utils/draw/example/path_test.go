@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jiushengTech/common/draw"
+	"github.com/jiushengTech/common/utils/draw"
 )
 
 func TestPathDrawing(t *testing.T) {

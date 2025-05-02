@@ -4,13 +4,13 @@ package draw
 import (
 	"time"
 
-	"github.com/jiushengTech/common/draw/processor"
-	"github.com/jiushengTech/common/draw/shape"
-	"github.com/jiushengTech/common/draw/shape/base"
-	"github.com/jiushengTech/common/draw/shape/path"
-	"github.com/jiushengTech/common/draw/shape/primitives/circle"
-	"github.com/jiushengTech/common/draw/shape/primitives/line"
-	"github.com/jiushengTech/common/draw/shape/primitives/rectangle"
+	"github.com/jiushengTech/common/utils/draw/processor"
+	"github.com/jiushengTech/common/utils/draw/shape"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/utils/draw/shape/path"
+	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
+	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
+	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
 )
 
 // 导出公共类型

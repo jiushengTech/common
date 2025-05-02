@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/jiushengTech/common/draw"
+	"github.com/jiushengTech/common/utils/draw"
 )
 
 // TestDrawShapesWithPath 测试绘制图形并返回图片绝对路径
