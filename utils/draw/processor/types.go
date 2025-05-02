@@ -4,7 +4,7 @@ import (
 	"time"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/draw/shape/base"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
 // ProcessFunc 定义图像处理函数类型

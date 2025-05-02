@@ -2,7 +2,7 @@ package path
 
 import (
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/draw/shape/base"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
 // Path 表示图形路径，可以包含多个图形

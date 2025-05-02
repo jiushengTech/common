@@ -1,4 +1,4 @@
-module github.com/jiushengTech/common/draw
+module github.com/jiushengTech/common/utils/draw
 
 go 1.24.1
 

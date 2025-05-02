@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/jiushengTech/common/draw/shape/base"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
 // Option 是图像设置的函数选项接口
