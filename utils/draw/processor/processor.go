@@ -32,8 +32,22 @@ var (
 	tempDir        = "temp_images" // 固定临时目录名
 )
 
+// 获取默认输出文件名，使用当前时间格式
+func GetDefaultOutputName(format OutputFormat) string {
+	now := time.Now()
+	ext := "png"
+	if format != "" {
+		ext = string(format)
+	}
+
+	return fmt.Sprintf("%d%02d%02d_%02d%02d%02d.%s",
+		now.Year(), now.Month(), now.Day(),
+		now.Hour(), now.Minute(), now.Second(),
+		ext)
+}
+
 // 默认输出文件名
-const DefaultOutputName = "output.png"
+const DefaultOutputName = "output.png" // 兼容旧代码，实际将使用时间格式
 
 // 下载图片函数 - 内部使用
 func downloadImage(url string, timeout time.Duration) (string, error) {
@@ -172,7 +186,7 @@ func CleanupAllTempFiles() {
 func NewImageProcessor(imagePath string, options ...Option) *ImageProcessor {
 	processor := &ImageProcessor{
 		Path:           imagePath,
-		Output:         DefaultOutputName,
+		Output:         GetDefaultOutputName(FormatPNG), // 使用基于时间的默认文件名
 		OutputDir:      "result",
 		Format:         FormatPNG,
 		JpegQuality:    90,

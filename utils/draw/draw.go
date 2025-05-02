@@ -61,6 +61,11 @@ var (
 // 默认输出文件名
 const DefaultOutputName = processor.DefaultOutputName
 
+// 获取默认输出文件名（基于当前时间格式）
+func GetDefaultOutputName(format processor.OutputFormat) string {
+	return processor.GetDefaultOutputName(format)
+}
+
 // Registry 全局图形注册表实例
 var Registry = shape.DefaultRegistry()
 

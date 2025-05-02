@@ -1,7 +1,6 @@
 package processor
 
 import (
-	"fmt"
 	"path/filepath"
 	"strings"
 	"time"
@@ -111,14 +110,5 @@ func WithPostProcess(fn ProcessFunc) Option {
 
 // GetTimeBasedFileName 返回以当前时间格式化的文件名
 func GetTimeBasedFileName(format OutputFormat) string {
-	now := time.Now()
-	ext := "png"
-	if format != "" {
-		ext = string(format)
-	}
-
-	return fmt.Sprintf("%d%02d%02d_%02d%02d%02d.%s",
-		now.Year(), now.Month(), now.Day(),
-		now.Hour(), now.Minute(), now.Second(),
-		ext)
+	return GetDefaultOutputName(format)
 }
