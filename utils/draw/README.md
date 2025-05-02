@@ -9,18 +9,26 @@
 - 支持多种输出格式（PNG、JPEG）及质量配置
 - 支持本地文件和在线URL图片处理
 - 支持图像预处理和后处理功能
+- 支持颜色透明度设置
 - 使用函数选项模式，提供灵活易用的API
 - 支持图形工厂模式，易于扩展
 - 支持临时文件自动清理
+- 使用HTTP请求上下文控制超时
 
 ## 项目结构
 
 ```
 draw/
-├── draw.go          # 主包，提供公共API
-├── line/            # 线条相关实现
-├── processor/       # 图像处理器实现
-└── example/         # 使用示例
+├── draw.go            # 主包，提供公共API
+├── processor/         # 图像处理器实现
+├── shape/             # 图形相关实现
+│   ├── base/          # 基础图形定义
+│   ├── path/          # 图形路径
+│   └── primitives/    # 基本图形
+│       ├── circle/    # 圆形实现
+│       ├── line/      # 线条实现
+│       └── rectangle/ # 矩形实现
+└── example/           # 使用示例
 ```
 
 ## 安装
@@ -69,9 +77,11 @@ processor := draw.NewImageProcessor(
 )
 
 // 处理图像
-if err := processor.Process(); err != nil {
+outputPath, err := processor.Process()
+if err != nil {
     log.Fatalf("处理图像失败: %v", err)
 }
+fmt.Printf("图像已保存到: %s\n", outputPath)
 ```
 
 ### 使用工厂模式创建图形
@@ -100,6 +110,16 @@ processor := draw.NewImageProcessor(
     draw.WithJpegQuality(75),
     draw.WithTimeBasedName(),
 )
+```
+
+### 使用颜色透明度
+
+```go
+// 创建带透明度的颜色
+redTransparent := draw.NewColor(1, 0, 0, 0.5) // 半透明红色
+
+// 使用现有颜色并添加透明度
+blueTransparent := draw.ColorToRGBA(draw.ColorBlue, 0.7) // 70%不透明度的蓝色
 ```
 
 ### 使用预处理和后处理功能
@@ -181,17 +201,30 @@ draw.WithTimeBasedName()
 // 设置输出目录
 draw.WithOutputDir("outputs")
 
-// 添加一条线
-draw.WithLine(line)
+// 添加一个图形
+draw.WithShape(shape)
 
-// 添加多条线
-draw.WithLines([]draw.Line{line1, line2})
+// 添加多个图形
+draw.WithShapes([]draw.Shape{shape1, shape2})
+
+// 设置HTTP请求超时（处理URL图片时）
+draw.WithRequestTimeout(10 * time.Second)
 ```
 
 ### 处理图像
 
 ```go
-err := processor.Process()
+outputPath, err := draw.ProcessImage(processor)
+if err != nil {
+    log.Fatalf("处理失败: %v", err)
+}
+```
+
+### 清理临时文件
+
+```go
+// 在程序结束时清理所有临时文件
+defer draw.CleanupAllTempFiles()
 ```
 
 ## 预设颜色
@@ -204,6 +237,12 @@ err := processor.Process()
 - `ColorBlue`: 蓝色 [0, 0, 1]
 - `ColorGreen`: 绿色 [0, 1, 0]
 - `ColorYellow`: 黄色 [1, 1, 0]
+- `ColorCyan`: 青色 [0, 1, 1]
+- `ColorMagenta`: 品红 [1, 0, 1]
+- `ColorGray`: 灰色 [0.5, 0.5, 0.5]
+- `ColorOrange`: 橙色 [1, 0.5, 0]
+- `ColorPurple`: 紫色 [0.5, 0, 0.5]
+- `ColorBrown`: 棕色 [0.6, 0.3, 0]
 
 ## 协议
 

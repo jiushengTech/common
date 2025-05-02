@@ -1,9 +1,11 @@
 package processor
 
 import (
+	"context"
 	"fmt"
 	"image/jpeg"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -25,6 +27,9 @@ const (
 	FormatJPEG OutputFormat = "jpeg" // JPEG格式
 )
 
+// ProcessFunc 定义图像处理函数类型
+type ProcessFunc func(dc *gg.Context, width, height float64) error
+
 var (
 	// 用于管理临时文件的清理
 	tempFilesMutex sync.Mutex
@@ -32,24 +37,26 @@ var (
 	tempDir        = "temp_images" // 固定临时目录名
 )
 
-// 获取默认输出文件名，使用当前时间格式
+// GetDefaultOutputName 获取默认输出文件名，使用当前时间格式
 func GetDefaultOutputName(format OutputFormat) string {
 	now := time.Now()
 	ext := "png"
 	if format != "" {
 		ext = string(format)
 	}
-
-	return fmt.Sprintf("%d%02d%02d_%02d%02d%02d.%s",
+	rand.Seed(now.UnixNano())      // 设置随机种子
+	randomID := rand.Intn(1000000) // 生成 0~999999 的随机数
+	return fmt.Sprintf("%d%02d%02d_%02d%02d%02d_%06d.%s",
 		now.Year(), now.Month(), now.Day(),
 		now.Hour(), now.Minute(), now.Second(),
-		ext)
+		randomID, ext)
+
 }
 
 // 默认输出文件名
 const DefaultOutputName = "output.png" // 兼容旧代码，实际将使用时间格式
 
-// 下载图片函数 - 内部使用
+// downloadImage 下载图片函数 - 内部使用
 func downloadImage(url string, timeout time.Duration) (string, error) {
 	// 设置默认超时
 	if timeout <= 0 {
@@ -58,7 +65,7 @@ func downloadImage(url string, timeout time.Duration) (string, error) {
 
 	// 创建临时目录
 	if err := os.MkdirAll(tempDir, 0755); err != nil {
-		return "", fmt.Errorf("创建临时目录失败: %v", err)
+		return "", fmt.Errorf("创建临时目录失败: %w", err)
 	}
 
 	// 生成本地文件名 - 使用时间戳和URL哈希避免文件名冲突
@@ -77,24 +84,24 @@ func downloadImage(url string, timeout time.Duration) (string, error) {
 	tempFiles[localPath] = true
 	tempFilesMutex.Unlock()
 
-	// 下载图片 - 设置超时
-	client := &http.Client{
-		Timeout: timeout,
-	}
+	// 使用context设置超时
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
 
 	// 创建请求以便添加头部
-	req, err := http.NewRequest("GET", url, nil)
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("创建HTTP请求失败: %v", err)
+		return "", fmt.Errorf("创建HTTP请求失败: %w", err)
 	}
 
 	// 添加用户代理
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
 	// 执行请求
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("下载图片失败: %v", err)
+		return "", fmt.Errorf("下载图片失败: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -106,7 +113,7 @@ func downloadImage(url string, timeout time.Duration) (string, error) {
 	// 创建本地文件
 	out, err := os.Create(localPath)
 	if err != nil {
-		return "", fmt.Errorf("创建本地文件失败: %v", err)
+		return "", fmt.Errorf("创建本地文件失败: %w", err)
 	}
 	defer out.Close()
 
@@ -115,13 +122,13 @@ func downloadImage(url string, timeout time.Duration) (string, error) {
 	if err != nil {
 		// 删除失败的临时文件
 		os.Remove(localPath)
-		return "", fmt.Errorf("保存图片失败: %v", err)
+		return "", fmt.Errorf("保存图片失败: %w", err)
 	}
 
 	return localPath, nil
 }
 
-// 清理临时文件
+// cleanupTempFile 清理单个临时文件
 func cleanupTempFile(path string) {
 	tempFilesMutex.Lock()
 	defer tempFilesMutex.Unlock()
@@ -140,7 +147,7 @@ func cleanupTempFile(path string) {
 	}
 }
 
-// 清理临时目录
+// cleanupTempDir 清理临时目录
 func cleanupTempDir() {
 	// 检查目录是否存在
 	if _, err := os.Stat(tempDir); os.IsNotExist(err) {
@@ -182,6 +189,24 @@ func CleanupAllTempFiles() {
 	cleanupTempDir()
 }
 
+// ImageProcessor 图像处理器，管理图像处理流程
+type ImageProcessor struct {
+	// 输入配置
+	Path           string        // 图像路径或URL
+	RequestTimeout time.Duration // HTTP请求超时时间
+
+	// 输出配置
+	Output      string       // 输出文件名，不包含路径
+	OutputDir   string       // 输出目录
+	Format      OutputFormat // 输出格式
+	JpegQuality int          // JPEG质量 (0-100)
+
+	// 处理配置
+	Shapes      []base.Shape // 要绘制的图形集合
+	PreProcess  ProcessFunc  // 预处理函数
+	PostProcess ProcessFunc  // 后处理函数
+}
+
 // NewImageProcessor 创建一个新的图像处理器
 func NewImageProcessor(imagePath string, options ...Option) *ImageProcessor {
 	processor := &ImageProcessor{
@@ -193,6 +218,7 @@ func NewImageProcessor(imagePath string, options ...Option) *ImageProcessor {
 		RequestTimeout: 30 * time.Second,
 		PreProcess:     nil,
 		PostProcess:    nil,
+		Shapes:         []base.Shape{},
 	}
 
 	// 应用所有选项
@@ -203,13 +229,13 @@ func NewImageProcessor(imagePath string, options ...Option) *ImageProcessor {
 	return processor
 }
 
-// AddShape 添加一个图形
+// AddShape 添加一个图形到处理器
 func (p *ImageProcessor) AddShape(s base.Shape) *ImageProcessor {
 	p.Shapes = append(p.Shapes, s)
 	return p
 }
 
-// AddShapes 添加多个图形
+// AddShapes 添加多个图形到处理器
 func (p *ImageProcessor) AddShapes(shapes []base.Shape) *ImageProcessor {
 	p.Shapes = append(p.Shapes, shapes...)
 	return p
@@ -219,11 +245,10 @@ func (p *ImageProcessor) AddShapes(shapes []base.Shape) *ImageProcessor {
 func (p *ImageProcessor) SetOutputFormat(format OutputFormat) *ImageProcessor {
 	p.Format = format
 
-	// 自动更新文件扩展名
-	ext := string(format)
-	if !strings.HasSuffix(p.Output, "."+ext) {
-		base := strings.TrimSuffix(p.Output, filepath.Ext(p.Output))
-		p.Output = base + "." + ext
+	// 如果文件名没有扩展名，或扩展名与格式不匹配，更新文件名扩展名
+	if filepath.Ext(p.Output) == "" || !strings.HasSuffix(p.Output, string(format)) {
+		baseName := strings.TrimSuffix(p.Output, filepath.Ext(p.Output))
+		p.Output = baseName + "." + string(format)
 	}
 
 	return p
@@ -231,8 +256,9 @@ func (p *ImageProcessor) SetOutputFormat(format OutputFormat) *ImageProcessor {
 
 // SetJpegQuality 设置JPEG质量
 func (p *ImageProcessor) SetJpegQuality(quality int) *ImageProcessor {
-	if quality < 1 {
-		quality = 1
+	// 限制值在0-100范围内
+	if quality < 0 {
+		quality = 0
 	} else if quality > 100 {
 		quality = 100
 	}
@@ -240,11 +266,22 @@ func (p *ImageProcessor) SetJpegQuality(quality int) *ImageProcessor {
 	return p
 }
 
-// Validate 验证图像和图形数据是否有效
+// Validate 验证处理器配置
 func (p *ImageProcessor) Validate() error {
-	// 检查图像路径
+	// 验证输入路径
 	if p.Path == "" {
-		return fmt.Errorf("图像路径为空")
+		return fmt.Errorf("输入路径不能为空")
+	}
+
+	// 判断是否为URL
+	isURL := strings.HasPrefix(strings.ToLower(p.Path), "http://") ||
+		strings.HasPrefix(strings.ToLower(p.Path), "https://")
+
+	// 验证本地文件是否存在
+	if !isURL {
+		if _, err := os.Stat(p.Path); os.IsNotExist(err) {
+			return fmt.Errorf("输入文件不存在: %s", p.Path)
+		}
 	}
 
 	// 验证输出格式
@@ -255,133 +292,113 @@ func (p *ImageProcessor) Validate() error {
 	return nil
 }
 
-// Process 处理图像并绘制图形，返回图片的绝对路径
+// Process 处理图像并保存到输出路径
 func (p *ImageProcessor) Process() (string, error) {
-	// 验证数据
+	// 验证配置
 	if err := p.Validate(); err != nil {
 		return "", err
 	}
 
-	// 处理图片路径，如果是URL则下载
+	// 判断是否为URL
+	isURL := strings.HasPrefix(strings.ToLower(p.Path), "http://") ||
+		strings.HasPrefix(strings.ToLower(p.Path), "https://")
+
+	// 如果是URL，下载图片
 	imagePath := p.Path
-	isTemporaryFile := false
-	if strings.HasPrefix(p.Path, "http://") || strings.HasPrefix(p.Path, "https://") {
-		localPath, err := downloadImage(p.Path, p.RequestTimeout)
+	if isURL {
+		var err error
+		imagePath, err = downloadImage(p.Path, p.RequestTimeout)
 		if err != nil {
-			return "", fmt.Errorf("下载图片失败: %v", err)
+			return "", fmt.Errorf("下载图片失败: %w", err)
 		}
-		imagePath = localPath
-		isTemporaryFile = true
-
-		// 确保函数结束时删除临时文件
-		defer func() {
-			if isTemporaryFile {
-				cleanupTempFile(imagePath)
-			}
-		}()
+		// 在函数结束时清理临时文件
+		defer cleanupTempFile(imagePath)
 	}
 
-	// 加载原图
-	sourceImage, err := gg.LoadImage(imagePath)
+	// 加载图片
+	img, err := gg.LoadImage(imagePath)
 	if err != nil {
-		return "", fmt.Errorf("加载图像 %s 失败: %v", imagePath, err)
+		return "", fmt.Errorf("加载图片失败: %w", err)
 	}
 
-	// 获取原图尺寸
-	bounds := sourceImage.Bounds()
-	width := float64(bounds.Max.X)
-	height := float64(bounds.Max.Y)
+	// 创建图形上下文
+	width := float64(img.Bounds().Dx())
+	height := float64(img.Bounds().Dy())
+	dc := gg.NewContextForImage(img)
 
-	// 创建新的画布
-	dc := gg.NewContext(bounds.Max.X, bounds.Max.Y)
-
-	// 绘制原图
-	dc.DrawImage(sourceImage, 0, 0)
-
-	// 执行预处理函数（如果有）
+	// 应用预处理函数
 	if p.PreProcess != nil {
 		if err := p.PreProcess(dc, width, height); err != nil {
-			return "", fmt.Errorf("图像预处理失败: %v", err)
+			return "", fmt.Errorf("预处理失败: %w", err)
 		}
 	}
 
-	// 绘制每个图形
+	// 绘制所有图形
 	if err := p.drawShapes(dc, width, height); err != nil {
-		return "", err
+		return "", fmt.Errorf("绘制图形失败: %w", err)
 	}
 
-	// 执行后处理函数（如果有）
+	// 应用后处理函数
 	if p.PostProcess != nil {
 		if err := p.PostProcess(dc, width, height); err != nil {
-			return "", fmt.Errorf("图像后处理失败: %v", err)
+			return "", fmt.Errorf("后处理失败: %w", err)
 		}
 	}
 
-	// 创建输出目录（如果不存在）
+	// 确保输出目录存在
 	if err := os.MkdirAll(p.OutputDir, 0755); err != nil {
-		return "", fmt.Errorf("创建目录 %s 失败: %v", p.OutputDir, err)
+		return "", fmt.Errorf("创建输出目录失败: %w", err)
 	}
 
-	// 保存结果
+	// 获取输出路径
 	outputPath := filepath.Join(p.OutputDir, p.Output)
 
-	// 根据格式保存文件
-	var saveErr error
+	// 保存结果图像
 	switch p.Format {
 	case FormatPNG:
-		saveErr = dc.SavePNG(outputPath)
+		if err := dc.SavePNG(outputPath); err != nil {
+			return "", fmt.Errorf("保存PNG图像失败: %w", err)
+		}
 	case FormatJPEG:
-		// 创建文件
 		file, err := os.Create(outputPath)
 		if err != nil {
-			return "", fmt.Errorf("创建JPEG文件失败: %v", err)
+			return "", fmt.Errorf("创建JPEG输出文件失败: %w", err)
 		}
 		defer file.Close()
 
-		// 使用jpeg库保存图像
-		img := dc.Image()
-		opt := jpeg.Options{Quality: p.JpegQuality}
-		saveErr = jpeg.Encode(file, img, &opt)
-		if saveErr != nil {
-			saveErr = fmt.Errorf("保存JPEG文件失败: %v", saveErr)
+		if err := jpeg.Encode(file, dc.Image(), &jpeg.Options{
+			Quality: p.JpegQuality,
+		}); err != nil {
+			return "", fmt.Errorf("保存JPEG图像失败: %w", err)
 		}
 	default:
 		return "", fmt.Errorf("不支持的输出格式: %s", p.Format)
 	}
 
-	if saveErr != nil {
-		return "", saveErr
-	}
-
-	// 获取绝对路径并返回
-	absPath, err := p.GetAbsoluteOutputPath()
-	if err != nil {
-		return "", err
-	}
-
-	return absPath, nil
+	// 返回绝对路径
+	return p.GetAbsoluteOutputPath()
 }
 
-// GetOutputPath 获取完整的输出路径
+// GetOutputPath 获取输出路径
 func (p *ImageProcessor) GetOutputPath() string {
 	return filepath.Join(p.OutputDir, p.Output)
 }
 
-// GetAbsoluteOutputPath 获取图片输出的绝对路径
+// GetAbsoluteOutputPath 获取绝对输出路径
 func (p *ImageProcessor) GetAbsoluteOutputPath() (string, error) {
-	relPath := p.GetOutputPath()
-	absPath, err := filepath.Abs(relPath)
+	outputPath := p.GetOutputPath()
+	absolutePath, err := filepath.Abs(outputPath)
 	if err != nil {
-		return "", fmt.Errorf("获取绝对路径失败: %v", err)
+		return "", fmt.Errorf("获取绝对路径失败: %w", err)
 	}
-	return absPath, nil
+	return absolutePath, nil
 }
 
 // drawShapes 绘制所有图形
 func (p *ImageProcessor) drawShapes(dc *gg.Context, width, height float64) error {
-	for i, s := range p.Shapes {
-		if err := s.Draw(dc, width, height); err != nil {
-			return fmt.Errorf("绘制图形 %d 失败: %v", i, err)
+	for _, shape := range p.Shapes {
+		if err := shape.Draw(dc, width, height); err != nil {
+			return fmt.Errorf("绘制图形 %s 失败: %w", shape.GetType(), err)
 		}
 	}
 	return nil

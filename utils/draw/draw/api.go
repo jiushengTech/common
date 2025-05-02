@@ -1,4 +1,3 @@
-// Package draw 提供图像绘制功能，支持多种形状和图像处理操作
 package draw
 
 import (
@@ -10,17 +9,13 @@ import (
 	"github.com/jiushengTech/common/utils/draw/shape/group"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygon"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
 )
 
-// 导出公共类型
+// 导出公共类型别名
 type (
 	// Point 表示二维坐标点
 	Point = base.Point
-
-	// Shape 是所有图形的通用接口
-	Shape = base.Shape
 
 	// ImageProcessor 图像处理器
 	ImageProcessor = processor.ImageProcessor
@@ -31,23 +26,8 @@ type (
 	// LineType 线条类型
 	LineType = line.Type
 
-	// ShapeGroup 图形组类型
-	ShapeGroup = group.ShapeGroup
-
-	// ShapeOption 图形配置选项类型
-	ShapeOption = base.Option
-
-	// ProcessorOption 处理器配置选项类型
-	ProcessorOption = processor.Option
-
-	// OutputFormat 输出格式类型
-	OutputFormat = processor.OutputFormat
-
 	// Color 表示RGBA颜色
 	Color = base.Color
-
-	// ProcessFunc 图像处理函数类型
-	ProcessFunc = processor.ProcessFunc
 )
 
 // 线条类型常量
@@ -78,14 +58,6 @@ var (
 	ColorBrown   = base.ColorBrown   // 棕色
 )
 
-// 默认输出文件名
-const DefaultOutputName = processor.DefaultOutputName
-
-// GetDefaultOutputName 获取默认输出文件名（基于当前时间格式）
-func GetDefaultOutputName(format OutputFormat) string {
-	return processor.GetDefaultOutputName(format)
-}
-
 // Registry 全局图形注册表实例
 var Registry = shape.DefaultRegistry()
 
@@ -93,40 +65,36 @@ var Registry = shape.DefaultRegistry()
 // -------------------------
 
 // NewShape 通过类型名称创建图形
-// 示例:
-//
-//	circle, ok := draw.NewShape("circle",
-//	   draw.WithPoints([]draw.Point{{X: 400, Y: 400}}),
-//	   draw.WithRadius(60),
-//	   draw.WithColor(draw.ColorRed),
-//	)
 func NewShape(shapeType string, options ...ShapeOption) (Shape, bool) {
 	return shape.CreateShape(Registry, shapeType, options...)
 }
 
 // NewLine 创建一条线
 func NewLine(lineType LineType, points []Point, values []float64, options ...ShapeOption) Shape {
-	// 直接调用底层包的构造函数
 	return line.New(lineType, points, values, options...)
 }
 
+// NewVerticalLine 创建一条竖线
+func NewVerticalLine(xpoints []Point, values []float64, options ...ShapeOption) Shape {
+	factory := line.Factory{LineType: VerticalLine}
+	options = append(options, base.WithPoints(xpoints), line.WithValues(values))
+	return factory.Create(options...)
+}
+
+// NewHorizontalLine 创建一条横线
+func NewHorizontalLine(ypoints []Point, values []float64, options ...ShapeOption) Shape {
+	factory := line.Factory{LineType: HorizontalLine}
+	options = append(options, base.WithPoints(ypoints), line.WithValues(values))
+	return factory.Create(options...)
+}
+
 // NewRectangle 创建一个矩形
-// 参数:
-//
-//	topLeft: 左上角坐标
-//	bottomRight: 右下角坐标
-//	options: 可选配置，如颜色、线宽、是否填充等
 func NewRectangle(topLeft, bottomRight Point, options ...ShapeOption) Shape {
 	points := []Point{topLeft, bottomRight}
 	return rectangle.New(points, options...)
 }
 
 // NewCircle 创建一个圆形
-// 参数:
-//
-//	center: 圆心坐标
-//	radius: 半径
-//	options: 可选配置，如颜色、线宽、是否填充等
 func NewCircle(center Point, radius float64, options ...ShapeOption) Shape {
 	return circle.New(center, radius, options...)
 }
@@ -137,46 +105,24 @@ func NewShapeGroup(name string, options ...ShapeOption) *ShapeGroup {
 }
 
 // NewShapeRegistry 创建一个新的图形注册表
-// 可用于创建自定义的图形类型注册表
 func NewShapeRegistry() *ShapeRegistry {
 	return shape.NewRegistry()
 }
 
 // RegisterShape 注册自定义图形到全局注册表
-// 参数:
-//
-//	shapeType: 图形类型名称
-//	factory: 图形工厂实例
 func RegisterShape(shapeType string, factory base.ShapeFactory) {
 	Registry.Register(shapeType, factory)
 }
 
 // NewImageProcessor 创建一个新的图像处理器
-// 参数:
-//
-//	imagePath: 图像路径，可以是本地文件路径或URL
-//	options: 可选配置，如输出目录、文件名、添加图形等
 func NewImageProcessor(imagePath string, options ...ProcessorOption) *ImageProcessor {
 	return processor.NewImageProcessor(imagePath, options...)
-}
-
-// NewPolygon 创建一个多边形
-// 参数:
-//
-//	points: 多边形的顶点坐标数组，至少需要3个点
-//	options: 可选配置，如颜色、线宽、是否填充等
-func NewPolygon(points []Point, options ...ShapeOption) Shape {
-	return polygon.New(points, options...)
 }
 
 // 颜色相关函数
 // -------------------------
 
 // NewColor 创建一个新的RGBA颜色
-// 参数:
-//
-//	r,g,b: RGB颜色值(0-1)
-//	a: 透明度(0-1)，0完全透明，1不透明
 func NewColor(r, g, b, a float64) Color {
 	return base.NewColor(r, g, b, a)
 }
@@ -215,7 +161,6 @@ func WithLineType(lineType LineType) ShapeOption {
 }
 
 // WithTextPosition 设置线条文本位置 (0-1之间)
-// 0表示最左/最上方，0.5表示中间，1表示最右/最下方
 func WithTextPosition(position float64) ShapeOption {
 	return line.WithTextPosition(position)
 }
@@ -240,16 +185,16 @@ func WithName(name string) ShapeOption {
 	return group.WithName(name)
 }
 
-// WithPolygonFill 设置是否填充多边形
-func WithPolygonFill(fill bool) ShapeOption {
-	return polygon.WithFill(fill)
-}
-
 // 处理器配置选项函数
 // -------------------------
 
 // WithOutputName 设置输出文件名
 func WithOutputName(name string) ProcessorOption {
+	return processor.WithOutputName(name)
+}
+
+// WithCustomName 设置自定义名称（兼容）
+func WithCustomName(name string) ProcessorOption {
 	return processor.WithOutputName(name)
 }
 
@@ -289,12 +234,12 @@ func WithRequestTimeout(timeout time.Duration) ProcessorOption {
 }
 
 // WithPreProcess 设置图像预处理函数
-func WithPreProcess(fn ProcessFunc) ProcessorOption {
+func WithPreProcess(fn processor.ProcessFunc) ProcessorOption {
 	return processor.WithPreProcess(fn)
 }
 
 // WithPostProcess 设置图像后处理函数
-func WithPostProcess(fn ProcessFunc) ProcessorOption {
+func WithPostProcess(fn processor.ProcessFunc) ProcessorOption {
 	return processor.WithPostProcess(fn)
 }
 

@@ -13,23 +13,19 @@ func TestDrawLines(t *testing.T) {
 
 	// 测试用例1：绘制垂直线 - 文本在中间位置
 	t.Run("绘制垂直线-中间文本", func(t *testing.T) {
-		// 创建竖线点和值
+		// 创建普通竖线
 		xpoints := []draw.Point{
-			{X: 100, Y: 0}, // 第一条竖线
-			{X: 200, Y: 0}, // 第二条竖线
-			{X: 300, Y: 0}, // 第三条竖线
-			{X: 400, Y: 0}, // 第四条竖线
-			{X: 500, Y: 0}, // 第五条竖线
+			{X: 279, Y: 0},
+			{X: 380, Y: 0},
+			{X: 494, Y: 0},
+			{X: 626, Y: 0},
+			{X: 735, Y: 0},
+			{X: 799, Y: 0},
 		}
-		// 这些值将显示在相邻两条线之间
-		xvalues := []float64{0.25, 0.50, 0.75, 1.0}
+		xvalues := []float64{0.33, 0.45, 0.67, 0.82, 0.91}
 
-		// 创建垂直线 - 设置文本在正中间 (0.5)
-		vline := draw.NewVerticalLine(xpoints, xvalues,
-			draw.WithColor(draw.ColorRed),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.5), // 文本位置在正中间
-		)
+		vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues,
+			draw.WithColor(draw.ColorWhite))
 
 		// 创建图像处理器并添加图形
 		processor := draw.NewImageProcessor(
@@ -49,23 +45,19 @@ func TestDrawLines(t *testing.T) {
 
 	// 测试用例2：绘制垂直线 - 文本在顶部
 	t.Run("绘制垂直线-顶部文本", func(t *testing.T) {
-		// 创建竖线点和值
+		// 创建普通竖线
 		xpoints := []draw.Point{
-			{X: 100, Y: 0}, // 第一条竖线
-			{X: 200, Y: 0}, // 第二条竖线
-			{X: 300, Y: 0}, // 第三条竖线
-			{X: 400, Y: 0}, // 第四条竖线
-			{X: 500, Y: 0}, // 第五条竖线
+			{X: 279, Y: 0},
+			{X: 380, Y: 0},
+			{X: 494, Y: 0},
+			{X: 626, Y: 0},
+			{X: 735, Y: 0},
+			{X: 799, Y: 0},
 		}
-		// 这些值将显示在相邻两条线之间
-		xvalues := []float64{0.25, 0.50, 0.75, 1.0}
+		xvalues := []float64{0.33, 0.45, 0.67, 0.82, 0.91}
 
-		// 创建垂直线 - 设置文本在顶部 (0.1)
-		vline := draw.NewVerticalLine(xpoints, xvalues,
-			draw.WithColor(draw.ColorRed),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.1), // 文本位置在顶部
-		)
+		vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues,
+			draw.WithColor(draw.ColorWhite))
 
 		// 创建图像处理器并添加图形
 		processor := draw.NewImageProcessor(
@@ -86,23 +78,18 @@ func TestDrawLines(t *testing.T) {
 
 	// 测试用例3：绘制水平线 - 文本在中间
 	t.Run("绘制水平线-中间文本", func(t *testing.T) {
-		// 创建水平线点和值
+		// 绘制简单横线 - 带颜色、线宽设置
 		ypoints := []draw.Point{
-			{X: 0, Y: 100}, // 第一条水平线
-			{X: 0, Y: 200}, // 第二条水平线
-			{X: 0, Y: 300}, // 第三条水平线
-			{X: 0, Y: 400}, // 第四条水平线
-			{X: 0, Y: 500}, // 第五条水平线
+			{X: 0, Y: 200},
+			{X: 0, Y: 300},
+			{X: 0, Y: 400},
+			{X: 0, Y: 500},
 		}
-		// 这些值将显示在相邻两条线之间
-		yvalues := []float64{0.25, 0.50, 0.75, 1.0}
+		yvalues := []float64{0.25, 0.50, 0.75}
 
-		// 创建水平线 - 设置文本在正中间
-		hline := draw.NewHorizontalLine(ypoints, yvalues,
+		hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues,
 			draw.WithColor(draw.ColorBlue),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.5), // 文本位置在正中间
-		)
+			draw.WithLineWidth(2.0))
 
 		// 创建图像处理器并添加图形
 		processor := draw.NewImageProcessor(
@@ -123,23 +110,18 @@ func TestDrawLines(t *testing.T) {
 
 	// 测试用例4：绘制水平线 - 文本在右侧
 	t.Run("绘制水平线-右侧文本", func(t *testing.T) {
-		// 创建水平线点和值
+		// 绘制横线 - 带文本位置设置
 		ypoints := []draw.Point{
-			{X: 0, Y: 100}, // 第一条水平线
-			{X: 0, Y: 200}, // 第二条水平线
-			{X: 0, Y: 300}, // 第三条水平线
-			{X: 0, Y: 400}, // 第四条水平线
-			{X: 0, Y: 500}, // 第五条水平线
+			{X: 0, Y: 200},
+			{X: 0, Y: 300},
+			{X: 0, Y: 400},
+			{X: 0, Y: 500},
 		}
-		// 这些值将显示在相邻两条线之间
-		yvalues := []float64{0.25, 0.50, 0.75, 1.0}
+		yvalues := []float64{0.25, 0.50, 0.75}
 
-		// 创建水平线 - 设置文本在右侧
-		hline := draw.NewHorizontalLine(ypoints, yvalues,
-			draw.WithColor(draw.ColorBlue),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.9), // 文本位置在右侧
-		)
+		hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues,
+			draw.WithColor(draw.ColorYellow),
+			draw.WithTextPosition(0.1))
 
 		// 创建图像处理器并添加图形
 		processor := draw.NewImageProcessor(
@@ -160,40 +142,52 @@ func TestDrawLines(t *testing.T) {
 
 	// 测试用例5：同时绘制不同位置文本的水平线和垂直线
 	t.Run("绘制不同文本位置的线条组合", func(t *testing.T) {
-		// 垂直线 - 中间文本
-		vline1 := draw.NewVerticalLine(
-			[]draw.Point{{X: 150, Y: 0}, {X: 300, Y: 0}, {X: 450, Y: 0}},
-			[]float64{0.25, 0.5},
+		// 竖线1 - 左侧
+		vline1 := draw.NewLine(draw.VerticalLine,
+			[]draw.Point{
+				{X: 180, Y: 0},
+				{X: 220, Y: 0},
+				{X: 260, Y: 0},
+			},
+			[]float64{0.3, 0.7},
 			draw.WithColor(draw.ColorRed),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.5), // 中间文本
+			draw.WithTextPosition(0.1), // 偏左侧显示文本
 		)
 
-		// 垂直线 - 底部文本
-		vline2 := draw.NewVerticalLine(
-			[]draw.Point{{X: 600, Y: 0}, {X: 750, Y: 0}},
-			[]float64{0.75},
-			draw.WithColor(draw.ColorGreen),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.85), // 底部文本
-		)
-
-		// 水平线 - 左侧文本
-		hline1 := draw.NewHorizontalLine(
-			[]draw.Point{{X: 0, Y: 150}, {X: 0, Y: 300}, {X: 0, Y: 450}},
-			[]float64{0.25, 0.5},
+		// 竖线2 - 右侧
+		vline2 := draw.NewLine(draw.VerticalLine,
+			[]draw.Point{
+				{X: 540, Y: 0},
+				{X: 580, Y: 0},
+				{X: 620, Y: 0},
+			},
+			[]float64{0.3, 0.7},
 			draw.WithColor(draw.ColorBlue),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.1), // 左侧文本
+			draw.WithTextPosition(0.9), // 偏右侧显示文本
 		)
 
-		// 水平线 - 右侧文本
-		hline2 := draw.NewHorizontalLine(
-			[]draw.Point{{X: 0, Y: 600}, {X: 0, Y: 750}},
-			[]float64{0.75},
-			draw.WithColor(draw.ColorYellow),
-			draw.WithLineWidth(2.0),
-			draw.WithTextPosition(0.9), // 右侧文本
+		// 横线1 - 上方
+		hline1 := draw.NewLine(draw.HorizontalLine,
+			[]draw.Point{
+				{X: 0, Y: 180},
+				{X: 0, Y: 220},
+				{X: 0, Y: 260},
+			},
+			[]float64{0.3, 0.7},
+			draw.WithColor(draw.ColorGreen),
+			draw.WithTextPosition(0.1), // 偏上方显示文本
+		)
+
+		// 横线2 - 下方
+		hline2 := draw.NewLine(draw.HorizontalLine,
+			[]draw.Point{
+				{X: 0, Y: 540},
+				{X: 0, Y: 580},
+				{X: 0, Y: 620},
+			},
+			[]float64{0.3, 0.7},
+			draw.WithColor(draw.ColorOrange),
+			draw.WithTextPosition(0.9), // 偏下方显示文本
 		)
 
 		// 创建图像处理器并添加所有图形

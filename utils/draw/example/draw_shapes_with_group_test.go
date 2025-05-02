@@ -7,10 +7,10 @@ import (
 	"github.com/jiushengTech/common/utils/draw"
 )
 
-// TestDrawShapesWithPath 测试绘制图形并返回图片绝对路径
-func TestDrawShapesWithPath(t *testing.T) {
+// TestAbsolutePathWithShapes 测试绘制图形并返回绝对路径
+func TestAbsolutePathWithShapes(t *testing.T) {
 	// 测试图片URL (使用一个示例图片)
-	imageURL := "https://picsum.photos/800/600"
+	imageURL := "http://suuqjbby1.hn-bkt.clouddn.com/tryon/origin/uploads/2025-04-22/20250420214131.jpg"
 
 	// 创建一个圆形
 	circle := draw.NewCircle(
@@ -33,7 +33,7 @@ func TestDrawShapesWithPath(t *testing.T) {
 	processor := draw.NewImageProcessor(
 		imageURL,
 		draw.WithTimeBasedName(),
-		draw.WithOutputDir("path_test_results"),
+		draw.WithOutputDir("group_test_results"),
 		draw.WithShape(circle),
 		draw.WithShape(rect),
 	)
@@ -50,7 +50,7 @@ func TestDrawShapesWithPath(t *testing.T) {
 	processor2 := draw.NewImageProcessor(
 		imageURL,
 		draw.WithTimeBasedName(),
-		draw.WithOutputDir("path_test_results"),
+		draw.WithOutputDir("group_test_results"),
 		draw.WithShape(circle),
 	)
 

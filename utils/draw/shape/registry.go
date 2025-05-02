@@ -2,9 +2,10 @@ package shape
 
 import (
 	"github.com/jiushengTech/common/utils/draw/shape/base"
-	"github.com/jiushengTech/common/utils/draw/shape/path"
+	"github.com/jiushengTech/common/utils/draw/shape/group"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
+	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygon"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/rectangle"
 )
 
@@ -47,8 +48,11 @@ func DefaultRegistry() *ShapeRegistry {
 	// 注册圆形工厂
 	registry.Register("circle", circle.Factory{})
 
-	// 注册路径工厂
-	registry.Register("path", path.Factory{Name: "default_path"})
+	// 注册多边形工厂
+	registry.Register("polygon", polygon.Factory{})
+
+	// 注册图形组工厂
+	registry.Register("shape_group", group.Factory{Name: "default_group"})
 
 	return registry
 }

@@ -7,12 +7,12 @@ import (
 	"github.com/jiushengTech/common/utils/draw"
 )
 
-func TestPathDrawing(t *testing.T) {
+func TestShapeGroupDrawing(t *testing.T) {
 	// 图片路径 - 使用在线URL
 	imageURL := "http://suuqjbby1.hn-bkt.clouddn.com/tryon/origin/uploads/2025-04-22/20250420214131.jpg"
 
-	// 创建一个"轮廓"路径
-	outlinePath := draw.NewPath("outline")
+	// 创建一个"轮廓"图形组
+	outlineGroup := draw.NewShapeGroup("outline")
 
 	// 创建几个矩形，表示轮廓
 	rect1 := draw.NewRectangle(
@@ -29,11 +29,11 @@ func TestPathDrawing(t *testing.T) {
 		draw.WithLineWidth(3.0),
 	)
 
-	// 添加矩形到轮廓路径
-	outlinePath.AddShapes([]draw.Shape{rect1, rect2})
+	// 添加矩形到轮廓图形组
+	outlineGroup.AddShapes([]draw.Shape{rect1, rect2})
 
-	// 创建一个"测量线"路径
-	measurePath := draw.NewPath("measure")
+	// 创建一个"测量线"图形组
+	measureGroup := draw.NewShapeGroup("measure")
 
 	// 创建水平和垂直线，表示测量
 	xpoints := []draw.Point{
@@ -51,14 +51,15 @@ func TestPathDrawing(t *testing.T) {
 	}
 	yvalues := []float64{0.25, 0.50}
 
-	vline := draw.NewVerticalLine(xpoints, xvalues, draw.WithColor(draw.ColorWhite))
-	hline := draw.NewHorizontalLine(ypoints, yvalues, draw.WithColor(draw.ColorYellow))
+	// 创建竖线组
+	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(draw.ColorWhite))
+	hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues, draw.WithColor(draw.ColorYellow))
 
-	// 添加线到测量路径
-	measurePath.AddShapes([]draw.Shape{vline, hline})
+	// 添加线到测量图形组
+	measureGroup.AddShapes([]draw.Shape{vline, hline})
 
-	// 创建一个"标记"路径
-	markerPath := draw.NewPath("markers")
+	// 创建一个"标记"图形组
+	markerGroup := draw.NewShapeGroup("markers")
 
 	// 创建一些圆形标记
 	circle1 := draw.NewCircle(
@@ -75,44 +76,44 @@ func TestPathDrawing(t *testing.T) {
 		draw.WithFill(true),
 	)
 
-	// 添加圆形到标记路径
-	markerPath.AddShapes([]draw.Shape{circle1, circle2})
+	// 添加圆形到标记图形组
+	markerGroup.AddShapes([]draw.Shape{circle1, circle2})
 
-	// 创建处理器并添加所有路径
+	// 创建处理器并添加所有图形组
 	processor := draw.NewImageProcessor(
 		imageURL,
 		draw.WithTimeBasedName(),
-		draw.WithOutputDir("path_results"),
-		draw.WithShape(outlinePath),
-		draw.WithShape(measurePath),
-		draw.WithShape(markerPath),
+		draw.WithOutputDir("group_results"),
+		draw.WithShape(outlineGroup),
+		draw.WithShape(measureGroup),
+		draw.WithShape(markerGroup),
 	)
 
 	// 处理图像
 	absPath, err := processor.Process()
 	if err != nil {
-		t.Errorf("绘制路径错误: %v", err)
+		t.Errorf("绘制图形组错误: %v", err)
 	} else {
-		fmt.Printf("成功生成包含多个路径的图片，绝对路径: %s\n", absPath)
+		fmt.Printf("成功生成包含多个图形组的图片，绝对路径: %s\n", absPath)
 	}
 
-	// 测试单独开关某个路径
-	// 隐藏测量路径
-	measurePath.SetVisible(false)
+	// 测试单独开关某个图形组
+	// 隐藏测量图形组
+	measureGroup.SetVisible(false)
 
 	processor2 := draw.NewImageProcessor(
 		imageURL,
 		draw.WithTimeBasedName(),
-		draw.WithOutputDir("path_results"),
-		draw.WithShape(outlinePath),
-		draw.WithShape(measurePath), // 这个路径被设置为不可见
-		draw.WithShape(markerPath),
+		draw.WithOutputDir("group_results"),
+		draw.WithShape(outlineGroup),
+		draw.WithShape(measureGroup), // 这个图形组被设置为不可见
+		draw.WithShape(markerGroup),
 	)
 
 	absPath2, err := processor2.Process()
 	if err != nil {
-		t.Errorf("绘制部分路径错误: %v", err)
+		t.Errorf("绘制部分图形组错误: %v", err)
 	} else {
-		fmt.Printf("成功生成隐藏测量路径的图片，绝对路径: %s\n", absPath2)
+		fmt.Printf("成功生成隐藏测量图形组的图片，绝对路径: %s\n", absPath2)
 	}
 }

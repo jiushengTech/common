@@ -28,7 +28,7 @@ func TestShapesDrawing(t *testing.T) {
 	xvalues := []float64{0.33, 0.45, 0.67, 0.82, 0.91}
 
 	// 创建垂直线
-	vline := draw.NewVerticalLine(xpoints, xvalues, draw.WithColor(draw.ColorWhite))
+	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(draw.ColorWhite))
 
 	// 创建水平线
 	ypoints := []draw.Point{
@@ -39,7 +39,7 @@ func TestShapesDrawing(t *testing.T) {
 	}
 	yvalues := []float64{0.25, 0.50, 0.75}
 
-	hline := draw.NewHorizontalLine(ypoints, yvalues, draw.WithColor(draw.ColorYellow))
+	hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues, draw.WithColor(draw.ColorYellow))
 
 	// 示例2：绘制矩形
 	fmt.Println("示例2：绘制矩形...")

@@ -15,7 +15,7 @@ type Option func(*ImageProcessor)
 func WithOutputName(name string) Option {
 	return func(p *ImageProcessor) {
 		if name == "" {
-			p.Output = GetTimeBasedFileName(p.Format)
+			p.Output = GetDefaultOutputName(p.Format)
 		} else {
 			// 确保扩展名与格式一致
 			ext := string(p.Format)
@@ -31,7 +31,7 @@ func WithOutputName(name string) Option {
 // WithTimeBasedName 设置输出文件名为当前时间
 func WithTimeBasedName() Option {
 	return func(p *ImageProcessor) {
-		p.Output = GetTimeBasedFileName(p.Format)
+		p.Output = GetDefaultOutputName(p.Format)
 	}
 }
 
@@ -76,8 +76,9 @@ func WithOutputFormat(format OutputFormat) Option {
 // WithJpegQuality 设置JPEG质量
 func WithJpegQuality(quality int) Option {
 	return func(p *ImageProcessor) {
-		if quality < 1 {
-			quality = 1
+		// 限制值在0-100范围内
+		if quality < 0 {
+			quality = 0
 		} else if quality > 100 {
 			quality = 100
 		}
@@ -109,6 +110,7 @@ func WithPostProcess(fn ProcessFunc) Option {
 }
 
 // GetTimeBasedFileName 返回以当前时间格式化的文件名
+// 兼容旧函数，实际上调用 GetDefaultOutputName
 func GetTimeBasedFileName(format OutputFormat) string {
 	return GetDefaultOutputName(format)
 }
