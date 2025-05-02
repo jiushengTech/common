@@ -1,4 +1,4 @@
-module github.com/jiushengTech/common/utils/linedraw
+module github.com/jiushengTech/common/draw
 
 go 1.24.1
 
