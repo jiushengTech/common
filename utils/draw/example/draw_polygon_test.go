@@ -15,7 +15,7 @@ func TestPolygonDrawing(t *testing.T) {
 	fmt.Println("示例1：绘制普通多边形...")
 
 	// 创建一个三角形
-	trianglePoints := []draw.Point{
+	trianglePoints := []*draw.Point{
 		{X: 100, Y: 100},
 		{X: 200, Y: 100},
 		{X: 150, Y: 200},
@@ -28,7 +28,7 @@ func TestPolygonDrawing(t *testing.T) {
 	)
 
 	// 创建一个五边形
-	pentagonPoints := []draw.Point{
+	pentagonPoints := []*draw.Point{
 		{X: 300, Y: 150},
 		{X: 350, Y: 100},
 		{X: 400, Y: 150},
@@ -43,7 +43,7 @@ func TestPolygonDrawing(t *testing.T) {
 	)
 
 	// 创建一个不规则多边形
-	irregularPoints := []draw.Point{
+	irregularPoints := []*draw.Point{
 		{X: 500, Y: 100},
 		{X: 600, Y: 150},
 		{X: 650, Y: 220},
@@ -78,7 +78,7 @@ func TestPolygonDrawing(t *testing.T) {
 	// 示例2：创建一个复杂形状（星形）
 	fmt.Println("示例2：绘制星形...")
 
-	starPoints := []draw.Point{
+	starPoints := []*draw.Point{
 		{X: 400, Y: 300}, // 顶点
 		{X: 425, Y: 350},
 		{X: 475, Y: 350}, // 右上角

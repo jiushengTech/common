@@ -44,23 +44,23 @@ go get github.com/jiushengTech/common/utils/draw
 ```go
 // 创建矩形
 rect := draw.NewRectangle(
-    draw.Point{X: 100, Y: 100},
-    draw.Point{X: 200, Y: 200},
+    &draw.Point{X: 100, Y: 100},
+    &draw.Point{X: 200, Y: 200},
     draw.WithColor(draw.ColorBlue),
     draw.WithLineWidth(3.0),
 )
 
 // 创建填充矩形
 filledRect := draw.NewRectangle(
-    draw.Point{X: 300, Y: 150},
-    draw.Point{X: 400, Y: 250},
+    &draw.Point{X: 300, Y: 150},
+    &draw.Point{X: 400, Y: 250},
     draw.WithColor(draw.ColorRed),
     draw.WithFill(true),
 )
 
 // 创建圆形
 circle := draw.NewCircle(
-    draw.Point{X: 500, Y: 300},
+    &draw.Point{X: 500, Y: 300},
     50,
     draw.WithColor(draw.ColorGreen),
     draw.WithLineWidth(2.5),
@@ -89,7 +89,7 @@ fmt.Printf("图像已保存到: %s\n", outputPath)
 ```go
 // 通过类型名称创建图形
 circle, ok := draw.NewShape("circle",
-    draw.WithPoints([]draw.Point{{X: 400, Y: 400}}),
+    draw.WithPoints([]*&draw.Point{{X: 400, Y: 400}}),
     draw.WithRadius(60),
     draw.WithColor(draw.ColorRed),
     draw.WithFill(true),

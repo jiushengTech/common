@@ -14,7 +14,7 @@ func TestDrawLines(t *testing.T) {
 	// 测试用例1：绘制垂直线 - 文本在中间位置
 	t.Run("绘制垂直线-中间文本", func(t *testing.T) {
 		// 创建普通竖线
-		xpoints := []draw.Point{
+		xpoints := []*draw.Point{
 			{X: 279, Y: 0},
 			{X: 380, Y: 0},
 			{X: 494, Y: 0},
@@ -46,7 +46,7 @@ func TestDrawLines(t *testing.T) {
 	// 测试用例2：绘制垂直线 - 文本在顶部
 	t.Run("绘制垂直线-顶部文本", func(t *testing.T) {
 		// 创建普通竖线
-		xpoints := []draw.Point{
+		xpoints := []*draw.Point{
 			{X: 279, Y: 0},
 			{X: 380, Y: 0},
 			{X: 494, Y: 0},
@@ -79,7 +79,7 @@ func TestDrawLines(t *testing.T) {
 	// 测试用例3：绘制水平线 - 文本在中间
 	t.Run("绘制水平线-中间文本", func(t *testing.T) {
 		// 绘制简单横线 - 带颜色、线宽设置
-		ypoints := []draw.Point{
+		ypoints := []*draw.Point{
 			{X: 0, Y: 200},
 			{X: 0, Y: 300},
 			{X: 0, Y: 400},
@@ -111,7 +111,7 @@ func TestDrawLines(t *testing.T) {
 	// 测试用例4：绘制水平线 - 文本在右侧
 	t.Run("绘制水平线-右侧文本", func(t *testing.T) {
 		// 绘制横线 - 带文本位置设置
-		ypoints := []draw.Point{
+		ypoints := []*draw.Point{
 			{X: 0, Y: 200},
 			{X: 0, Y: 300},
 			{X: 0, Y: 400},
@@ -144,7 +144,7 @@ func TestDrawLines(t *testing.T) {
 	t.Run("绘制不同文本位置的线条组合", func(t *testing.T) {
 		// 竖线1 - 左侧
 		vline1 := draw.NewLine(draw.VerticalLine,
-			[]draw.Point{
+			[]*draw.Point{
 				{X: 180, Y: 0},
 				{X: 220, Y: 0},
 				{X: 260, Y: 0},
@@ -156,7 +156,7 @@ func TestDrawLines(t *testing.T) {
 
 		// 竖线2 - 右侧
 		vline2 := draw.NewLine(draw.VerticalLine,
-			[]draw.Point{
+			[]*draw.Point{
 				{X: 540, Y: 0},
 				{X: 580, Y: 0},
 				{X: 620, Y: 0},
@@ -168,7 +168,7 @@ func TestDrawLines(t *testing.T) {
 
 		// 横线1 - 上方
 		hline1 := draw.NewLine(draw.HorizontalLine,
-			[]draw.Point{
+			[]*draw.Point{
 				{X: 0, Y: 180},
 				{X: 0, Y: 220},
 				{X: 0, Y: 260},
@@ -180,7 +180,7 @@ func TestDrawLines(t *testing.T) {
 
 		// 横线2 - 下方
 		hline2 := draw.NewLine(draw.HorizontalLine,
-			[]draw.Point{
+			[]*draw.Point{
 				{X: 0, Y: 540},
 				{X: 0, Y: 580},
 				{X: 0, Y: 620},

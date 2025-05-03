@@ -14,9 +14,6 @@ import (
 
 // 导出公共类型别名
 type (
-	// Point 表示二维坐标点
-	Point = base.Point
-
 	// ImageProcessor 图像处理器
 	ImageProcessor = processor.ImageProcessor
 
@@ -70,32 +67,32 @@ func NewShape(shapeType string, options ...ShapeOption) (Shape, bool) {
 }
 
 // NewLine 创建一条线
-func NewLine(lineType LineType, points []Point, values []float64, options ...ShapeOption) Shape {
+func NewLine(lineType LineType, points []*Point, values []float64, options ...ShapeOption) Shape {
 	return line.New(lineType, points, values, options...)
 }
 
 // NewVerticalLine 创建一条竖线
-func NewVerticalLine(xpoints []Point, values []float64, options ...ShapeOption) Shape {
+func NewVerticalLine(xpoints []*Point, values []float64, options ...ShapeOption) Shape {
 	factory := line.Factory{LineType: VerticalLine}
 	options = append(options, base.WithPoints(xpoints), line.WithValues(values))
 	return factory.Create(options...)
 }
 
 // NewHorizontalLine 创建一条横线
-func NewHorizontalLine(ypoints []Point, values []float64, options ...ShapeOption) Shape {
+func NewHorizontalLine(ypoints []*Point, values []float64, options ...ShapeOption) Shape {
 	factory := line.Factory{LineType: HorizontalLine}
 	options = append(options, base.WithPoints(ypoints), line.WithValues(values))
 	return factory.Create(options...)
 }
 
 // NewRectangle 创建一个矩形
-func NewRectangle(topLeft, bottomRight Point, options ...ShapeOption) Shape {
-	points := []Point{topLeft, bottomRight}
+func NewRectangle(topLeft, bottomRight *Point, options ...ShapeOption) Shape {
+	points := []*Point{topLeft, bottomRight}
 	return rectangle.New(points, options...)
 }
 
 // NewCircle 创建一个圆形
-func NewCircle(center Point, radius float64, options ...ShapeOption) Shape {
+func NewCircle(center *Point, radius float64, options ...ShapeOption) Shape {
 	return circle.New(center, radius, options...)
 }
 
@@ -146,7 +143,7 @@ func WithLineWidth(width float64) ShapeOption {
 }
 
 // WithPoints 设置图形的点集合
-func WithPoints(points []Point) ShapeOption {
+func WithPoints(points []*Point) ShapeOption {
 	return base.WithPoints(points)
 }
 

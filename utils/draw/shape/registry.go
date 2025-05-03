@@ -38,25 +38,25 @@ func DefaultRegistry() *ShapeRegistry {
 	registry := NewRegistry()
 
 	// 注册垂直线工厂
-	registry.Register("vertical_line", line.Factory{LineType: line.Vertical})
+	registry.Register("vertical_line", &line.Factory{LineType: line.Vertical})
 
 	// 注册水平线工厂
-	registry.Register("horizontal_line", line.Factory{LineType: line.Horizontal})
+	registry.Register("horizontal_line", &line.Factory{LineType: line.Horizontal})
 
 	// 注册矩形工厂
-	registry.Register("rectangle", rectangle.Factory{})
+	registry.Register("rectangle", &rectangle.Factory{})
 
 	// 注册圆形工厂
-	registry.Register("circle", circle.Factory{})
+	registry.Register("circle", &circle.Factory{})
 
 	// 注册多边形工厂
-	registry.Register("polygon", polygon.Factory{})
+	registry.Register("polygon", &polygon.Factory{})
 
 	// 注册镂空多边形工厂
-	registry.Register("hollow_polygon", hollowpolygon.Factory{})
+	registry.Register("hollow_polygon", &hollowpolygon.Factory{})
 
 	// 注册图形组工厂
-	registry.Register("shape_group", group.Factory{Name: "default_group"})
+	registry.Register("shape_group", &group.Factory{Name: "default_group"})
 
 	return registry
 }

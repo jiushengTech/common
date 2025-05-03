@@ -15,6 +15,8 @@ import (
 
 // 定义类型别名
 type (
+	// Point 表示一个二维坐标点
+	Point = base.Point
 	// Shape 是所有图形的通用接口
 	Shape = base.Shape
 
@@ -113,23 +115,23 @@ func (d *Drawing) AddShape(shape Shape) *Drawing {
 }
 
 // AddCircle 添加一个圆形
-func (d *Drawing) AddCircle(center Point, radius float64, opts ...ShapeOption) *Drawing {
+func (d *Drawing) AddCircle(center *Point, radius float64, opts ...ShapeOption) *Drawing {
 	circle := NewCircle(center, radius, opts...)
 	return d.AddShape(circle)
 }
 
 // AddRectangle 添加一个矩形
-func (d *Drawing) AddRectangle(topLeft, bottomRight Point, opts ...ShapeOption) *Drawing {
+func (d *Drawing) AddRectangle(topLeft, bottomRight *Point, opts ...ShapeOption) *Drawing {
 	rect := NewRectangle(topLeft, bottomRight, opts...)
 	return d.AddShape(rect)
 }
 
 // AddLine 添加一条线
-func (d *Drawing) AddLine(start, end Point, opts ...ShapeOption) *Drawing {
+func (d *Drawing) AddLine(start, end *Point, opts ...ShapeOption) *Drawing {
 	// 创建一条直线
-	points := []Point{start, end}
+	points := []*Point{start, end}
 	lineType := VerticalLine
-	if start.X != end.X && start.Y == end.Y {
+	if start.X != end.X&start.Y == end.Y {
 		lineType = HorizontalLine
 	}
 	line := NewLine(lineType, points, nil, opts...)
@@ -221,7 +223,7 @@ func (d *Drawing) Process() (string, error) {
 
 // CircleBuilder 提供圆形的流畅构建API
 type CircleBuilder struct {
-	center  Point
+	center  *Point
 	radius  float64
 	options ShapeOptions
 }
@@ -229,7 +231,7 @@ type CircleBuilder struct {
 // Circle 创建一个可链式调用的圆形
 func Circle(center Point, radius float64) *CircleBuilder {
 	return &CircleBuilder{
-		center: center,
+		center: &center,
 		radius: radius,
 		options: ShapeOptions{
 			Color:     ColorBlack,
@@ -268,15 +270,15 @@ func (c *CircleBuilder) Build() Shape {
 
 // RectangleBuilder 提供矩形的流畅构建API
 type RectangleBuilder struct {
-	topLeft, bottomRight Point
+	topLeft, bottomRight *Point
 	options              ShapeOptions
 }
 
 // Rectangle 创建一个可链式调用的矩形
 func Rectangle(topLeft Point, width, height float64) *RectangleBuilder {
 	return &RectangleBuilder{
-		topLeft:     topLeft,
-		bottomRight: Point{X: topLeft.X + width, Y: topLeft.Y + height},
+		topLeft:     &topLeft,
+		bottomRight: &Point{X: topLeft.X + width, Y: topLeft.Y + height},
 		options: ShapeOptions{
 			Color:     ColorBlack,
 			LineWidth: 1.0,
@@ -305,7 +307,7 @@ func (r *RectangleBuilder) WithFill(fill bool) *RectangleBuilder {
 
 // Build 构建矩形并转换为Shape接口
 func (r *RectangleBuilder) Build() Shape {
-	points := []Point{r.topLeft, r.bottomRight}
+	points := []*Point{r.topLeft, r.bottomRight}
 	return rectangle.New(points,
 		WithColor(r.options.Color),
 		WithLineWidth(r.options.LineWidth),

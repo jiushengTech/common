@@ -24,13 +24,13 @@ func (r *Rectangle) SetLineWidth(width float64) {
 }
 
 // SetPoints 设置点集合
-func (r *Rectangle) SetPoints(points []base.Point) {
+func (r *Rectangle) SetPoints(points []*base.Point) {
 	r.Points = points
 }
 
 // New 创建一个新的矩形
 // points 需要包含对角线的两个点: [左上角, 右下角]
-func New(points []base.Point, options ...base.Option) *Rectangle {
+func New(points []*base.Point, options ...base.Option) *Rectangle {
 	rect := &Rectangle{
 		BaseShape: base.BaseShape{
 			ShapeType: "rectangle",
@@ -93,7 +93,7 @@ func (f Factory) Create(options ...base.Option) base.Shape {
 	rect := &Rectangle{
 		BaseShape: base.BaseShape{
 			ShapeType: "rectangle",
-			Points:    []base.Point{},
+			Points:    []*base.Point{},
 			Color:     base.ColorYellow, // 默认黄色
 			LineWidth: 2.0,
 		},

@@ -37,12 +37,12 @@ func (l *Line) SetLineWidth(width float64) {
 }
 
 // SetPoints 设置点集合
-func (l *Line) SetPoints(points []base.Point) {
+func (l *Line) SetPoints(points []*base.Point) {
 	l.Points = points
 }
 
 // New 创建一条线
-func New(lineType Type, points []base.Point, values []float64, options ...base.Option) *Line {
+func New(lineType Type, points []*base.Point, values []float64, options ...base.Option) *Line {
 	line := &Line{
 		BaseShape: base.BaseShape{
 			ShapeType: "line",
@@ -159,7 +159,7 @@ func (f Factory) Create(options ...base.Option) base.Shape {
 	line := &Line{
 		BaseShape: base.BaseShape{
 			ShapeType: "line",
-			Points:    []base.Point{},
+			Points:    []*base.Point{},
 			Color:     base.ColorYellow, // 默认黄色
 			LineWidth: 2.0,
 		},

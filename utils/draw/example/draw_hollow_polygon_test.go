@@ -15,7 +15,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	fmt.Println("示例1：创建镂空矩形...")
 
 	// 外部多边形（大矩形）
-	outerPoints := []draw.Point{
+	outerPoints := []*draw.Point{
 		{X: 100, Y: 100}, // 左上
 		{X: 400, Y: 100}, // 右上
 		{X: 400, Y: 400}, // 右下
@@ -23,7 +23,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	}
 
 	// 内部多边形（小矩形）
-	innerPoints := []draw.Point{
+	innerPoints := []*draw.Point{
 		{X: 200, Y: 200}, // 左上
 		{X: 300, Y: 200}, // 右上
 		{X: 300, Y: 300}, // 右下
@@ -35,7 +35,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 		outerPoints,
 		innerPoints,
 		draw.WithColor(draw.ColorGray),
-		draw.WithHollowPolygonOpacity(0.5), // 不透明度为0.7
+		draw.WithHollowPolygonOpacity(0.5), // 不透明度为0.5
 		draw.WithLineWidth(2.0),
 	)
 
@@ -58,7 +58,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	fmt.Println("示例2：创建复杂镂空多边形...")
 
 	// 外部多边形（不规则形状）
-	outerComplex := []draw.Point{
+	outerComplex := []*draw.Point{
 		{X: 150, Y: 150},
 		{X: 350, Y: 120},
 		{X: 450, Y: 250},
@@ -68,7 +68,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	}
 
 	// 内部多边形（五边形）
-	innerPentagon := []draw.Point{
+	innerPentagon := []*draw.Point{
 		{X: 200, Y: 180},
 		{X: 300, Y: 200},
 		{X: 330, Y: 280},

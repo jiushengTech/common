@@ -17,7 +17,7 @@ func TestShapesDrawing(t *testing.T) {
 	fmt.Println("示例1：绘制线条...")
 
 	// 创建竖线点和值
-	xpoints := []draw.Point{
+	xpoints := []*draw.Point{
 		{X: 279, Y: 0},
 		{X: 380, Y: 0},
 		{X: 494, Y: 0},
@@ -31,7 +31,7 @@ func TestShapesDrawing(t *testing.T) {
 	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(draw.ColorWhite))
 
 	// 创建水平线
-	ypoints := []draw.Point{
+	ypoints := []*draw.Point{
 		{X: 0, Y: 200},
 		{X: 0, Y: 300},
 		{X: 0, Y: 400},
@@ -46,16 +46,16 @@ func TestShapesDrawing(t *testing.T) {
 
 	// 创建矩形
 	rect1 := draw.NewRectangle(
-		draw.Point{X: 100, Y: 100},
-		draw.Point{X: 200, Y: 200},
+		&draw.Point{X: 100, Y: 100},
+		&draw.Point{X: 200, Y: 200},
 		draw.WithColor(draw.ColorBlue),
 		draw.WithLineWidth(3.0),
 	)
 
 	// 创建填充矩形
 	rect2 := draw.NewRectangle(
-		draw.Point{X: 300, Y: 150},
-		draw.Point{X: 400, Y: 250},
+		&draw.Point{X: 300, Y: 150},
+		&draw.Point{X: 400, Y: 250},
 		draw.WithColor(draw.ColorRed),
 		draw.WithFill(true),
 	)
@@ -65,7 +65,7 @@ func TestShapesDrawing(t *testing.T) {
 
 	// 创建圆形
 	circle1 := draw.NewCircle(
-		draw.Point{X: 500, Y: 300},
+		&draw.Point{X: 500, Y: 300},
 		50,
 		draw.WithColor(draw.ColorGreen),
 		draw.WithLineWidth(2.5),
@@ -73,7 +73,7 @@ func TestShapesDrawing(t *testing.T) {
 
 	// 创建填充圆形
 	circle2 := draw.NewCircle(
-		draw.Point{X: 650, Y: 300},
+		&draw.Point{X: 650, Y: 300},
 		30,
 		draw.WithColor(draw.ColorBlue),
 		draw.WithFill(true),
@@ -102,7 +102,7 @@ func TestShapesDrawing(t *testing.T) {
 
 	// 通过类型名称创建图形
 	circle, ok := draw.NewShape("circle",
-		draw.WithPoints([]draw.Point{{X: 400, Y: 400}}),
+		draw.WithPoints([]*draw.Point{{X: 100, Y: 100}}),
 		draw.WithRadius(60),
 		draw.WithColor(draw.ColorRed),
 		draw.WithFill(true),
@@ -113,7 +113,7 @@ func TestShapesDrawing(t *testing.T) {
 	}
 
 	rectangle, ok := draw.NewShape("rectangle",
-		draw.WithPoints([]draw.Point{{X: 200, Y: 350}, {X: 350, Y: 450}}),
+		draw.WithPoints([]*draw.Point{{X: 200, Y: 350}, {X: 350, Y: 450}}),
 		draw.WithColor(draw.ColorGreen),
 		draw.WithFill(true),
 	)

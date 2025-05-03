@@ -20,7 +20,7 @@ func TestFluentBuilder(t *testing.T) {
 
 	// 添加一个圆形
 	circle := draw.NewCircle(
-		draw.Point{X: 300, Y: 300},
+		&draw.Point{X: 300, Y: 300},
 		50,
 		draw.WithColor(draw.ColorRed),
 		draw.WithFill(true),
@@ -29,8 +29,8 @@ func TestFluentBuilder(t *testing.T) {
 
 	// 添加一个矩形
 	rect := draw.NewRectangle(
-		draw.Point{X: 200, Y: 200},
-		draw.Point{X: 400, Y: 400},
+		&draw.Point{X: 200, Y: 200},
+		&draw.Point{X: 400, Y: 400},
 		draw.WithColor(draw.ColorBlue),
 		draw.WithLineWidth(3),
 	)
@@ -66,22 +66,22 @@ func processOrganizedWay(imageURL string) (string, error) {
 	shapes := []draw.Shape{
 		// 创建一个圆形
 		draw.NewCircle(
-			draw.Point{X: 400, Y: 300},
+			&draw.Point{X: 400, Y: 300},
 			100,
 			draw.WithColor(draw.ColorRed),
 			draw.WithLineWidth(5),
 		),
 		// 创建一个矩形
 		draw.NewRectangle(
-			draw.Point{X: 350, Y: 250},
-			draw.Point{X: 450, Y: 350},
+			&draw.Point{X: 350, Y: 250},
+			&draw.Point{X: 450, Y: 350},
 			draw.WithColor(draw.ColorBlue),
 			draw.WithFill(true),
 		),
 		// 创建一个线条
 		draw.NewLine(
 			draw.VerticalLine,
-			[]draw.Point{
+			[]*draw.Point{
 				{X: 200, Y: 200},
 				{X: 200, Y: 400},
 			},

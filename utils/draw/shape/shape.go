@@ -22,7 +22,7 @@ type Shape interface {
 	GetColor() [3]float64
 
 	// GetPoints 返回图形的点集合
-	GetPoints() []Point
+	GetPoints() []*Point
 }
 
 // 颜色常量
@@ -38,7 +38,7 @@ var (
 // BaseShape 包含所有图形的基本属性
 type BaseShape struct {
 	ShapeType string     `json:"type"`      // 图形类型
-	Points    []Point    `json:"points"`    // 点集合
+	Points    []*Point   `json:"points"`    // 点集合
 	Color     [3]float64 `json:"color"`     // 图形颜色，RGB值(0-1)
 	LineWidth float64    `json:"linewidth"` // 线宽
 }
@@ -54,7 +54,7 @@ func (b BaseShape) GetColor() [3]float64 {
 }
 
 // GetPoints 返回图形的点集合
-func (b BaseShape) GetPoints() []Point {
+func (b BaseShape) GetPoints() []*Point {
 	return b.Points
 }
 
@@ -80,7 +80,7 @@ func WithLineWidth(width float64) Option {
 }
 
 // WithPoints 设置图形的点集合
-func WithPoints(points []Point) Option {
+func WithPoints(points []*Point) Option {
 	return func(s interface{}) {
 		if shape, ok := s.(*BaseShape); ok {
 			shape.Points = points

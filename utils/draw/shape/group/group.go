@@ -24,7 +24,7 @@ func (g *ShapeGroup) SetLineWidth(width float64) {
 }
 
 // SetPoints 设置点集合 - 对ShapeGroup无效，但需要实现接口
-func (g *ShapeGroup) SetPoints(points []base.Point) {
+func (g *ShapeGroup) SetPoints(points []*base.Point) {
 	g.Points = points
 }
 

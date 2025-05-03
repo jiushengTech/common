@@ -16,15 +16,15 @@ func TestShapeGroupDrawing(t *testing.T) {
 
 	// 创建几个矩形，表示轮廓
 	rect1 := draw.NewRectangle(
-		draw.Point{X: 100, Y: 100},
-		draw.Point{X: 200, Y: 200},
+		&draw.Point{X: 100, Y: 100},
+		&draw.Point{X: 200, Y: 200},
 		draw.WithColor(draw.ColorBlue),
 		draw.WithLineWidth(3.0),
 	)
 
 	rect2 := draw.NewRectangle(
-		draw.Point{X: 300, Y: 150},
-		draw.Point{X: 400, Y: 250},
+		&draw.Point{X: 300, Y: 150},
+		&draw.Point{X: 400, Y: 250},
 		draw.WithColor(draw.ColorRed),
 		draw.WithLineWidth(3.0),
 	)
@@ -36,7 +36,7 @@ func TestShapeGroupDrawing(t *testing.T) {
 	measureGroup := draw.NewShapeGroup("measure")
 
 	// 创建水平和垂直线，表示测量
-	xpoints := []draw.Point{
+	xpoints := []*draw.Point{
 		{X: 279, Y: 0},
 		{X: 380, Y: 0},
 		{X: 494, Y: 0},
@@ -44,7 +44,7 @@ func TestShapeGroupDrawing(t *testing.T) {
 	}
 	xvalues := []float64{0.33, 0.45, 0.67}
 
-	ypoints := []draw.Point{
+	ypoints := []*draw.Point{
 		{X: 0, Y: 200},
 		{X: 0, Y: 300},
 		{X: 0, Y: 400},
@@ -63,14 +63,14 @@ func TestShapeGroupDrawing(t *testing.T) {
 
 	// 创建一些圆形标记
 	circle1 := draw.NewCircle(
-		draw.Point{X: 500, Y: 300},
+		&draw.Point{X: 500, Y: 300},
 		20,
 		draw.WithColor(draw.ColorGreen),
 		draw.WithFill(true),
 	)
 
 	circle2 := draw.NewCircle(
-		draw.Point{X: 650, Y: 300},
+		&draw.Point{X: 650, Y: 300},
 		20,
 		draw.WithColor(draw.ColorRed),
 		draw.WithFill(true),

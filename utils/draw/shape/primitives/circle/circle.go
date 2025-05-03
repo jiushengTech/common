@@ -25,17 +25,17 @@ func (c *Circle) SetLineWidth(width float64) {
 }
 
 // SetPoints 设置点集合
-func (c *Circle) SetPoints(points []base.Point) {
+func (c *Circle) SetPoints(points []*base.Point) {
 	c.Points = points
 }
 
 // New 创建一个新的圆形
 // points 需要包含圆心
-func New(center base.Point, radius float64, options ...base.Option) *Circle {
+func New(center *base.Point, radius float64, options ...base.Option) *Circle {
 	circle := &Circle{
 		BaseShape: base.BaseShape{
 			ShapeType: "circle",
-			Points:    []base.Point{center},
+			Points:    []*base.Point{center},
 			Color:     base.ColorYellow, // 默认黄色
 			LineWidth: 2.0,
 		},
@@ -89,7 +89,7 @@ func (f Factory) Create(options ...base.Option) base.Shape {
 	circle := &Circle{
 		BaseShape: base.BaseShape{
 			ShapeType: "circle",
-			Points:    []base.Point{},
+			Points:    []*base.Point{},
 			Color:     base.ColorYellow, // 默认黄色
 			LineWidth: 2.0,
 		},

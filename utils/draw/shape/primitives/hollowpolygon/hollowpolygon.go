@@ -11,14 +11,14 @@ import (
 // 外部多边形包含内部多边形，内部多边形区域将被镂空
 type HollowPolygon struct {
 	base.BaseShape
-	OuterPoints []base.Point `json:"outer_points"` // 外部多边形的点
-	InnerPoints []base.Point `json:"inner_points"` // 内部多边形的点
-	Opacity     float64      `json:"opacity"`      // 不透明度 (0-1)
+	OuterPoints []*base.Point `json:"outer_points"` // 外部多边形的点
+	InnerPoints []*base.Point `json:"inner_points"` // 内部多边形的点
+	Opacity     float64       `json:"opacity"`      // 不透明度 (0-1)
 }
 
 // SetColor 设置颜色
-func (h *HollowPolygon) SetColor(color [3]float64) {
-	h.Color = color
+func (h *HollowPolygon) SetColor(color *[3]float64) {
+	h.Color = *color
 }
 
 // SetLineWidth 设置线宽
@@ -27,8 +27,11 @@ func (h *HollowPolygon) SetLineWidth(width float64) {
 }
 
 // SetPoints 设置点集合（这里点集合只用于兼容接口，实际不使用）
-func (h *HollowPolygon) SetPoints(points []base.Point) {
-	h.Points = points
+func (h *HollowPolygon) SetPoints(points []*base.Point) {
+	h.Points = make([]*base.Point, len(points))
+	for i, p := range points {
+		h.Points[i] = p
+	}
 }
 
 // SetOpacity 设置不透明度
@@ -37,12 +40,12 @@ func (h *HollowPolygon) SetOpacity(opacity float64) {
 }
 
 // SetOuterPoints 设置外部多边形的顶点
-func (h *HollowPolygon) SetOuterPoints(points []base.Point) {
+func (h *HollowPolygon) SetOuterPoints(points []*base.Point) {
 	h.OuterPoints = points
 }
 
 // SetInnerPoints 设置内部多边形的顶点
-func (h *HollowPolygon) SetInnerPoints(points []base.Point) {
+func (h *HollowPolygon) SetInnerPoints(points []*base.Point) {
 	h.InnerPoints = points
 }
 
@@ -52,7 +55,7 @@ func (h *HollowPolygon) SetInnerPoints(points []base.Point) {
 //	outerPoints: 外部多边形的顶点，至少需要3个点
 //	innerPoints: 内部多边形的顶点，至少需要3个点
 //	options: 可选配置
-func New(outerPoints, innerPoints []base.Point, options ...base.Option) *HollowPolygon {
+func New(outerPoints []*base.Point, innerPoints []*base.Point, options ...base.Option) *HollowPolygon {
 	hollow := &HollowPolygon{
 		BaseShape: base.BaseShape{
 			ShapeType: "hollow_polygon",
@@ -123,7 +126,7 @@ func (h *HollowPolygon) Draw(dc *gg.Context, width, height float64) error {
 type Factory struct{}
 
 // Create 创建镂空多边形
-func (f Factory) Create(options ...base.Option) base.Shape {
+func (f *Factory) Create(options ...base.Option) base.Shape {
 	hollow := &HollowPolygon{
 		BaseShape: base.BaseShape{
 			ShapeType: "hollow_polygon",
@@ -151,7 +154,7 @@ func WithOpacity(opacity float64) base.Option {
 }
 
 // WithOuterPoints 设置外部多边形的顶点
-func WithOuterPoints(points []base.Point) base.Option {
+func WithOuterPoints(points []*base.Point) base.Option {
 	return func(s interface{}) {
 		if h, ok := s.(*HollowPolygon); ok {
 			h.OuterPoints = points
@@ -160,7 +163,7 @@ func WithOuterPoints(points []base.Point) base.Option {
 }
 
 // WithInnerPoints 设置内部多边形的顶点
-func WithInnerPoints(points []base.Point) base.Option {
+func WithInnerPoints(points []*base.Point) base.Option {
 	return func(s interface{}) {
 		if h, ok := s.(*HollowPolygon); ok {
 			h.InnerPoints = points

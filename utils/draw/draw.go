@@ -44,7 +44,7 @@ type (
 	// OutputFormat 输出格式类型
 	OutputFormat = processor.OutputFormat
 
-	// Color 表示RGBA颜色
+	// *Color 表示RGBA颜色
 	Color = base.Color
 
 	// ProcessFunc 图像处理函数类型
@@ -97,7 +97,7 @@ var Registry = shape.DefaultRegistry()
 // 示例:
 //
 //	circle, ok := draw.NewShape("circle",
-//	   draw.WithPoints([]draw.Point{{X: 400, Y: 400}}),
+//	   draw.WithPoints([]*&draw.Point{{X: 400, Y: 400}}),
 //	   draw.WithRadius(60),
 //	   draw.WithColor(draw.ColorRed),
 //	)
@@ -106,7 +106,7 @@ func NewShape(shapeType string, options ...ShapeOption) (Shape, bool) {
 }
 
 // NewLine 创建一条线
-func NewLine(lineType LineType, points []Point, values []float64, options ...ShapeOption) Shape {
+func NewLine(lineType LineType, points []*Point, values []float64, options ...ShapeOption) Shape {
 	// 直接调用底层包的构造函数
 	return line.New(lineType, points, values, options...)
 }
@@ -117,8 +117,8 @@ func NewLine(lineType LineType, points []Point, values []float64, options ...Sha
 //	topLeft: 左上角坐标
 //	bottomRight: 右下角坐标
 //	options: 可选配置，如颜色、线宽、是否填充等
-func NewRectangle(topLeft, bottomRight Point, options ...ShapeOption) Shape {
-	points := []Point{topLeft, bottomRight}
+func NewRectangle(topLeft, bottomRight *Point, options ...ShapeOption) Shape {
+	points := []*base.Point{topLeft, bottomRight}
 	return rectangle.New(points, options...)
 }
 
@@ -128,7 +128,7 @@ func NewRectangle(topLeft, bottomRight Point, options ...ShapeOption) Shape {
 //	center: 圆心坐标
 //	radius: 半径
 //	options: 可选配置，如颜色、线宽、是否填充等
-func NewCircle(center Point, radius float64, options ...ShapeOption) Shape {
+func NewCircle(center *Point, radius float64, options ...ShapeOption) Shape {
 	return circle.New(center, radius, options...)
 }
 
@@ -166,7 +166,7 @@ func NewImageProcessor(imagePath string, options ...ProcessorOption) *ImageProce
 //
 //	points: 多边形的顶点坐标数组，至少需要3个点
 //	options: 可选配置，如颜色、线宽、是否填充等
-func NewPolygon(points []Point, options ...ShapeOption) Shape {
+func NewPolygon(points []*Point, options ...ShapeOption) Shape {
 	return polygon.New(points, options...)
 }
 
@@ -176,8 +176,23 @@ func NewPolygon(points []Point, options ...ShapeOption) Shape {
 //	outerPoints: 外部多边形的顶点数组，至少需要3个点
 //	innerPoints: 内部多边形的顶点数组，至少需要3个点
 //	options: 可选配置，如颜色、线宽、不透明度等
-func NewHollowPolygon(outerPoints, innerPoints []Point, options ...ShapeOption) Shape {
-	return hollowpolygon.New(outerPoints, innerPoints, options...)
+func NewHollowPolygon(outerPoints, innerPoints []*Point, options ...ShapeOption) Shape {
+	// 将普通点转换为指针数组
+	outerPtrs := make([]*base.Point, len(outerPoints))
+	for i := range outerPoints {
+		point := outerPoints[i]
+		newPoint := base.Point{X: point.X, Y: point.Y}
+		outerPtrs[i] = &newPoint
+	}
+
+	innerPtrs := make([]*base.Point, len(innerPoints))
+	for i := range innerPoints {
+		point := innerPoints[i]
+		newPoint := base.Point{X: point.X, Y: point.Y}
+		innerPtrs[i] = &newPoint
+	}
+
+	return hollowpolygon.New(outerPtrs, innerPtrs, options...)
 }
 
 // 颜色相关函数
@@ -211,7 +226,7 @@ func WithLineWidth(width float64) ShapeOption {
 }
 
 // WithPoints 设置图形的点集合
-func WithPoints(points []Point) ShapeOption {
+func WithPoints(points []*Point) ShapeOption {
 	return base.WithPoints(points)
 }
 
@@ -262,13 +277,27 @@ func WithHollowPolygonOpacity(opacity float64) ShapeOption {
 }
 
 // WithOuterPoints 设置镂空多边形的外部顶点
-func WithOuterPoints(points []Point) ShapeOption {
-	return hollowpolygon.WithOuterPoints(points)
+func WithOuterPoints(points []*Point) ShapeOption {
+	// 将普通点转换为指针数组
+	ptrs := make([]*base.Point, len(points))
+	for i := range points {
+		point := points[i]
+		newPoint := base.Point{X: point.X, Y: point.Y}
+		ptrs[i] = &newPoint
+	}
+	return hollowpolygon.WithOuterPoints(ptrs)
 }
 
 // WithInnerPoints 设置镂空多边形的内部顶点
-func WithInnerPoints(points []Point) ShapeOption {
-	return hollowpolygon.WithInnerPoints(points)
+func WithInnerPoints(points []*Point) ShapeOption {
+	// 将普通点转换为指针数组
+	ptrs := make([]*base.Point, len(points))
+	for i := range points {
+		point := points[i]
+		newPoint := base.Point{X: point.X, Y: point.Y}
+		ptrs[i] = &newPoint
+	}
+	return hollowpolygon.WithInnerPoints(ptrs)
 }
 
 // 处理器配置选项函数

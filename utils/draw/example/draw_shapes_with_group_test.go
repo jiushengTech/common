@@ -14,7 +14,7 @@ func TestAbsolutePathWithShapes(t *testing.T) {
 
 	// 创建一个圆形
 	circle := draw.NewCircle(
-		draw.Point{X: 400, Y: 300},
+		&draw.Point{X: 400, Y: 300},
 		100,
 		draw.WithColor(draw.ColorRed),
 		draw.WithLineWidth(5),
@@ -22,8 +22,8 @@ func TestAbsolutePathWithShapes(t *testing.T) {
 
 	// 创建一个矩形
 	rect := draw.NewRectangle(
-		draw.Point{X: 200, Y: 200},
-		draw.Point{X: 600, Y: 400},
+		&draw.Point{X: 200, Y: 200},
+		&draw.Point{X: 600, Y: 400},
 		draw.WithColor(draw.ColorBlue),
 		draw.WithLineWidth(3),
 		draw.WithFill(false),

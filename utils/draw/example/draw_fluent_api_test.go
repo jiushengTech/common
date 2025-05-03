@@ -41,7 +41,7 @@ func processWithFluentAPI(imageURL string) (string, error) {
 
 	// 添加一个圆形
 	circle := draw.NewCircle(
-		draw.Point{X: 400, Y: 300},
+		&draw.Point{X: 400, Y: 300},
 		100,
 		draw.WithColor(draw.ColorRed),
 		draw.WithLineWidth(5),
@@ -50,8 +50,8 @@ func processWithFluentAPI(imageURL string) (string, error) {
 
 	// 添加一个矩形
 	rect := draw.NewRectangle(
-		draw.Point{X: 200, Y: 200},
-		draw.Point{X: 600, Y: 400},
+		&draw.Point{X: 200, Y: 200},
+		&draw.Point{X: 600, Y: 400},
 		draw.WithColor(draw.ColorBlue),
 		draw.WithLineWidth(3),
 		draw.WithFill(false),
@@ -79,7 +79,7 @@ func processWithCompositeShapes(imageURL string) (string, error) {
 	// 添加多个圆形到组
 	for i := 0; i < 5; i++ {
 		circle := draw.NewCircle(
-			draw.Point{X: 300 + float64(i*60), Y: 200},
+			&draw.Point{X: 300 + float64(i*60), Y: 200},
 			20,
 			draw.WithColor(draw.ColorRed),
 			draw.WithFill(true),
@@ -89,8 +89,8 @@ func processWithCompositeShapes(imageURL string) (string, error) {
 
 	// 添加矩形到组
 	rect := draw.NewRectangle(
-		draw.Point{X: 250, Y: 250},
-		draw.Point{X: 550, Y: 350},
+		&draw.Point{X: 250, Y: 250},
+		&draw.Point{X: 550, Y: 350},
 		draw.WithColor(draw.ColorBlue),
 		draw.WithLineWidth(2),
 	)

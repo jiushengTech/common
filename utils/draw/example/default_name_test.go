@@ -16,7 +16,7 @@ func TestDefaultOutputName(t *testing.T) {
 
 	// 创建一个简单的图形
 	circle := draw.NewCircle(
-		draw.Point{X: 150, Y: 100},
+		&draw.Point{X: 150, Y: 100},
 		50,
 		draw.WithColor(draw.ColorBlue),
 		draw.WithFill(true),

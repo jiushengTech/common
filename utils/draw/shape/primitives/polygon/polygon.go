@@ -24,13 +24,13 @@ func (p *Polygon) SetLineWidth(width float64) {
 }
 
 // SetPoints 设置点集合
-func (p *Polygon) SetPoints(points []base.Point) {
+func (p *Polygon) SetPoints(points []*base.Point) {
 	p.Points = points
 }
 
 // New 创建一个新的多边形
 // points 需要包含多边形的所有顶点，至少需要3个点
-func New(points []base.Point, options ...base.Option) *Polygon {
+func New(points []*base.Point, options ...base.Option) *Polygon {
 	polygon := &Polygon{
 		BaseShape: base.BaseShape{
 			ShapeType: "polygon",
@@ -88,7 +88,7 @@ func (f Factory) Create(options ...base.Option) base.Shape {
 	polygon := &Polygon{
 		BaseShape: base.BaseShape{
 			ShapeType: "polygon",
-			Points:    []base.Point{},
+			Points:    []*base.Point{},
 			Color:     base.ColorGreen, // 默认绿色
 			LineWidth: 2.0,
 		},
