@@ -2,6 +2,7 @@ package line
 
 import (
 	"fmt"
+	"image/color"
 	"sort"
 
 	"github.com/fogleman/gg"
@@ -27,7 +28,7 @@ type Line struct {
 }
 
 // SetColor 设置颜色
-func (l *Line) SetColor(color [3]float64) {
+func (l *Line) SetColor(color *color.RGBA) {
 	l.Color = color
 }
 
@@ -84,7 +85,7 @@ func (l *Line) drawVertical(dc *gg.Context, width, height float64) error {
 		}
 
 		// 画线
-		dc.SetRGB(l.Color[0], l.Color[1], l.Color[2])
+		dc.SetColor(l.Color)
 		dc.SetLineWidth(l.LineWidth)
 		dc.DrawLine(point.X, 0, point.X, height)
 		dc.Stroke()
@@ -112,7 +113,7 @@ func (l *Line) drawHorizontal(dc *gg.Context, width, height float64) error {
 		}
 
 		// 画线
-		dc.SetRGB(l.Color[0], l.Color[1], l.Color[2])
+		dc.SetColor(l.Color)
 		dc.SetLineWidth(l.LineWidth)
 		dc.DrawLine(0, point.Y, width, point.Y)
 		dc.Stroke()

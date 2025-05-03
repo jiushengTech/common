@@ -1,6 +1,8 @@
 package base
 
 import (
+	"image/color"
+
 	"github.com/fogleman/gg"
 )
 
@@ -19,7 +21,7 @@ type Shape interface {
 	GetType() string
 
 	// GetColor 返回图形的颜色
-	GetColor() [3]float64
+	GetColor() *color.RGBA
 
 	// GetPoints 返回图形的点集合
 	GetPoints() []*Point
@@ -27,18 +29,19 @@ type Shape interface {
 
 // 颜色常量 (RGB值，范围0-1)
 var (
-	ColorWhite   = [3]float64{1, 1, 1}       // 白色
-	ColorBlack   = [3]float64{0, 0, 0}       // 黑色
-	ColorRed     = [3]float64{1, 0, 0}       // 红色
-	ColorBlue    = [3]float64{0, 0, 1}       // 蓝色
-	ColorGreen   = [3]float64{0, 1, 0}       // 绿色
-	ColorYellow  = [3]float64{1, 1, 0}       // 黄色
-	ColorCyan    = [3]float64{0, 1, 1}       // 青色
-	ColorMagenta = [3]float64{1, 0, 1}       // 品红
-	ColorGray    = [3]float64{0.5, 0.5, 0.5} // 灰色
-	ColorOrange  = [3]float64{1, 0.5, 0}     // 橙色
-	ColorPurple  = [3]float64{0.5, 0, 0.5}   // 紫色
-	ColorBrown   = [3]float64{0.6, 0.3, 0}   // 棕色
+	ColorWhite   = &color.RGBA{R: 1, G: 1, B: 1, A: 255}       // 不透明白色
+	ColorBlack   = &color.RGBA{A: 255}                         // 不透明黑色
+	ColorRed     = &color.RGBA{R: 1, A: 255}                   // 不透明红色
+	ColorBlue    = &color.RGBA{B: 1, A: 255}                   // 不透明蓝色
+	ColorGreen   = &color.RGBA{G: 1, A: 255}                   // 不透明绿色
+	ColorYellow  = &color.RGBA{R: 1, G: 1, A: 255}             // 黄色
+	ColorCyan    = &color.RGBA{G: 1, B: 1, A: 255}             // 不透明青色
+	ColorMagenta = &color.RGBA{R: 1, B: 1, A: 255}             // 不透明品红
+	ColorGray    = &color.RGBA{R: 128, G: 128, B: 128, A: 255} // 灰色
+	ColorOrange  = &color.RGBA{R: 255, G: 165, A: 255}         // 橙色
+	ColorPurple  = &color.RGBA{R: 128, B: 128, A: 255}         // 紫色
+	ColorBrown   = &color.RGBA{R: 139, G: 69, B: 19, A: 255}   // 棕色
+
 )
 
 // Color 表示RGBA颜色
@@ -57,16 +60,6 @@ func NewColor(r, g, b, a float64) Color {
 	}
 }
 
-// ColorToRGBA 将传统的[3]float64颜色转换为Color
-func ColorToRGBA(color [3]float64, alpha float64) Color {
-	return Color{
-		R: color[0],
-		G: color[1],
-		B: color[2],
-		A: alpha,
-	}
-}
-
 // clamp 将值限制在指定范围内
 func clamp(value, min, max float64) float64 {
 	if value < min {
@@ -80,10 +73,10 @@ func clamp(value, min, max float64) float64 {
 
 // BaseShape 包含所有图形的基本属性
 type BaseShape struct {
-	ShapeType string     `json:"type"`      // 图形类型
-	Points    []*Point   `json:"points"`    // 点集合
-	Color     [3]float64 `json:"color"`     // 图形颜色，RGB值(0-1)
-	LineWidth float64    `json:"linewidth"` // 线宽
+	ShapeType string      `json:"type"`      // 图形类型
+	Points    []*Point    `json:"points"`    // 点集合
+	Color     *color.RGBA `json:"color"`     // 图形颜色，RGB值(0-1)
+	LineWidth float64     `json:"linewidth"` // 线宽
 }
 
 // GetType 返回图形的类型
@@ -92,7 +85,7 @@ func (b BaseShape) GetType() string {
 }
 
 // GetColor 返回图形的颜色
-func (b BaseShape) GetColor() [3]float64 {
+func (b BaseShape) GetColor() *color.RGBA {
 	return b.Color
 }
 
@@ -105,10 +98,10 @@ func (b BaseShape) GetPoints() []*Point {
 type Option func(interface{})
 
 // WithColor 设置图形颜色
-func WithColor(color [3]float64) Option {
+func WithColor(c *color.RGBA) Option {
 	return func(s interface{}) {
-		if shape, ok := s.(interface{ SetColor([3]float64) }); ok {
-			shape.SetColor(color)
+		if shape, ok := s.(interface{ SetColor(rgba *color.RGBA) }); ok {
+			shape.SetColor(c)
 		}
 	}
 }

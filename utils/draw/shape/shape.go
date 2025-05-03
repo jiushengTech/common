@@ -2,6 +2,7 @@ package shape
 
 import (
 	"github.com/fogleman/gg"
+	"image/color"
 )
 
 // Point 表示二维坐标点
@@ -19,28 +20,18 @@ type Shape interface {
 	GetType() string
 
 	// GetColor 返回图形的颜色
-	GetColor() [3]float64
+	GetColor() *color.RGBA
 
 	// GetPoints 返回图形的点集合
 	GetPoints() []*Point
 }
 
-// 颜色常量
-var (
-	ColorWhite  = [3]float64{1, 1, 1} // 白色
-	ColorBlack  = [3]float64{0, 0, 0} // 黑色
-	ColorRed    = [3]float64{1, 0, 0} // 红色
-	ColorBlue   = [3]float64{0, 0, 1} // 蓝色
-	ColorGreen  = [3]float64{0, 1, 0} // 绿色
-	ColorYellow = [3]float64{1, 1, 0} // 黄色
-)
-
 // BaseShape 包含所有图形的基本属性
 type BaseShape struct {
-	ShapeType string     `json:"type"`      // 图形类型
-	Points    []*Point   `json:"points"`    // 点集合
-	Color     [3]float64 `json:"color"`     // 图形颜色，RGB值(0-1)
-	LineWidth float64    `json:"linewidth"` // 线宽
+	ShapeType string      `json:"type"`      // 图形类型
+	Points    []*Point    `json:"points"`    // 点集合
+	Color     *color.RGBA `json:"color"`     // 图形颜色，RGB值(0-1)
+	LineWidth float64     `json:"linewidth"` // 线宽
 }
 
 // GetType 返回图形的类型
@@ -49,7 +40,7 @@ func (b BaseShape) GetType() string {
 }
 
 // GetColor 返回图形的颜色
-func (b BaseShape) GetColor() [3]float64 {
+func (b BaseShape) GetColor() *color.RGBA {
 	return b.Color
 }
 
@@ -62,7 +53,7 @@ func (b BaseShape) GetPoints() []*Point {
 type Option func(interface{})
 
 // WithColor 设置图形颜色
-func WithColor(color [3]float64) Option {
+func WithColor(color *color.RGBA) Option {
 	return func(s interface{}) {
 		if shape, ok := s.(*BaseShape); ok {
 			shape.Color = color

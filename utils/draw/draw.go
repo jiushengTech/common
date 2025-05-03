@@ -2,6 +2,7 @@
 package draw
 
 import (
+	"image/color"
 	"time"
 
 	"github.com/jiushengTech/common/utils/draw/processor"
@@ -43,9 +44,6 @@ type (
 
 	// OutputFormat 输出格式类型
 	OutputFormat = processor.OutputFormat
-
-	// *Color 表示RGBA颜色
-	Color = base.Color
 
 	// ProcessFunc 图像处理函数类型
 	ProcessFunc = processor.ProcessFunc
@@ -195,28 +193,11 @@ func NewHollowPolygon(outerPoints, innerPoints []*Point, options ...ShapeOption)
 	return hollowpolygon.New(outerPtrs, innerPtrs, options...)
 }
 
-// 颜色相关函数
-// -------------------------
-
-// NewColor 创建一个新的RGBA颜色
-// 参数:
-//
-//	r,g,b: RGB颜色值(0-1)
-//	a: 透明度(0-1)，0完全透明，1不透明
-func NewColor(r, g, b, a float64) Color {
-	return base.NewColor(r, g, b, a)
-}
-
-// ColorToRGBA 将RGB颜色转换为RGBA颜色
-func ColorToRGBA(color [3]float64, alpha float64) Color {
-	return base.ColorToRGBA(color, alpha)
-}
-
 // 图形配置选项函数
 // -------------------------
 
 // WithColor 设置图形颜色
-func WithColor(color [3]float64) ShapeOption {
+func WithColor(color *color.RGBA) ShapeOption {
 	return base.WithColor(color)
 }
 

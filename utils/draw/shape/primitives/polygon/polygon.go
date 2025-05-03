@@ -2,6 +2,7 @@ package polygon
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
@@ -14,7 +15,7 @@ type Polygon struct {
 }
 
 // SetColor 设置颜色
-func (p *Polygon) SetColor(color [3]float64) {
+func (p *Polygon) SetColor(color *color.RGBA) {
 	p.Color = color
 }
 
@@ -56,7 +57,7 @@ func (p *Polygon) Draw(dc *gg.Context, width, height float64) error {
 	}
 
 	// 设置颜色和线宽
-	dc.SetRGB(p.Color[0], p.Color[1], p.Color[2])
+	dc.SetColor(p.Color)
 	dc.SetLineWidth(p.LineWidth)
 
 	// 开始绘制路径

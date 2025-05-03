@@ -2,6 +2,7 @@ package hollowpolygon
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
@@ -17,8 +18,8 @@ type HollowPolygon struct {
 }
 
 // SetColor 设置颜色
-func (h *HollowPolygon) SetColor(color *[3]float64) {
-	h.Color = *color
+func (h *HollowPolygon) SetColor(color *color.RGBA) {
+	h.Color = color
 }
 
 // SetLineWidth 设置线宽
@@ -89,7 +90,7 @@ func (h *HollowPolygon) Draw(dc *gg.Context, width, height float64) error {
 	dc.Push()
 
 	// 设置RGBA颜色带透明度
-	dc.SetRGBA(h.Color[0], h.Color[1], h.Color[2], h.Opacity)
+	dc.SetColor(h.Color)
 	dc.SetLineWidth(h.LineWidth)
 
 	// 绘制外部多边形路径
@@ -113,7 +114,7 @@ func (h *HollowPolygon) Draw(dc *gg.Context, width, height float64) error {
 	dc.FillPreserve()
 
 	// 绘制边界线
-	dc.SetRGB(h.Color[0], h.Color[1], h.Color[2])
+	dc.SetColor(h.Color)
 	dc.Stroke()
 
 	// 恢复之前的状态

@@ -2,6 +2,7 @@ package rectangle
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
@@ -14,7 +15,7 @@ type Rectangle struct {
 }
 
 // SetColor 设置颜色
-func (r *Rectangle) SetColor(color [3]float64) {
+func (r *Rectangle) SetColor(color *color.RGBA) {
 	r.Color = color
 }
 
@@ -70,7 +71,7 @@ func (r *Rectangle) Draw(dc *gg.Context, width, height float64) error {
 	rectHeight := bottomRight.Y - topLeft.Y
 
 	// 设置颜色和线宽
-	dc.SetRGB(r.Color[0], r.Color[1], r.Color[2])
+	dc.SetColor(r.Color)
 	dc.SetLineWidth(r.LineWidth)
 
 	// 绘制矩形

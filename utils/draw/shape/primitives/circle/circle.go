@@ -2,6 +2,7 @@ package circle
 
 import (
 	"fmt"
+	"image/color"
 
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
@@ -15,7 +16,7 @@ type Circle struct {
 }
 
 // SetColor 设置颜色
-func (c *Circle) SetColor(color [3]float64) {
+func (c *Circle) SetColor(color *color.RGBA) {
 	c.Color = color
 }
 
@@ -67,7 +68,7 @@ func (c *Circle) Draw(dc *gg.Context, width, height float64) error {
 	}
 
 	// 设置颜色和线宽
-	dc.SetRGB(c.Color[0], c.Color[1], c.Color[2])
+	dc.SetColor(c.Color)
 	dc.SetLineWidth(c.LineWidth)
 
 	// 绘制圆形

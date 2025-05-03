@@ -3,6 +3,7 @@ package group
 import (
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"image/color"
 )
 
 // ShapeGroup 表示图形组，可以包含多个图形
@@ -14,7 +15,7 @@ type ShapeGroup struct {
 }
 
 // SetColor 设置颜色 - 对ShapeGroup无效，但需要实现接口
-func (g *ShapeGroup) SetColor(color [3]float64) {
+func (g *ShapeGroup) SetColor(color *color.RGBA) {
 	g.Color = color
 }
 
