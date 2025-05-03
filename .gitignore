@@ -45,3 +45,5 @@ web/pnpm-lock.yaml
  *.png
  *.jpg
  *.jpeg
+
+ *.log

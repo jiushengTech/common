@@ -5,6 +5,8 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/fogleman/gg"
+	"github.com/jiushengTech/common/utils/draw/adapter/polygonops"
 	"github.com/jiushengTech/common/utils/draw/processor"
 	"github.com/jiushengTech/common/utils/draw/shape"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
@@ -47,6 +49,15 @@ type (
 
 	// ProcessFunc 图像处理函数类型
 	ProcessFunc = processor.ProcessFunc
+
+	// PolygonOperation 表示一个多边形操作
+	PolygonOperation = polygonops.PolygonOperation
+
+	// Color 表示RGBA颜色（用于多边形操作）
+	PolygonColor = polygonops.Color
+
+	// OperationType 表示多边形操作类型
+	PolygonOperationType = polygonops.OperationType
 )
 
 // 线条类型常量
@@ -59,6 +70,14 @@ const (
 const (
 	FormatPNG  = processor.FormatPNG  // PNG格式
 	FormatJPEG = processor.FormatJPEG // JPEG格式
+)
+
+// 多边形操作类型常量
+const (
+	OperationOverlay      = polygonops.OperationOverlay      // 叠加显示
+	OperationDifferenceAB = polygonops.OperationDifferenceAB // 差集A-B
+	OperationDifferenceBA = polygonops.OperationDifferenceBA // 差集B-A
+	OperationIntersection = polygonops.OperationIntersection // 交集
 )
 
 // 颜色常量
@@ -75,6 +94,13 @@ var (
 	ColorOrange  = base.ColorOrange  // 橙色
 	ColorPurple  = base.ColorPurple  // 紫色
 	ColorBrown   = base.ColorBrown   // 棕色
+
+	// 多边形操作颜色常量
+	PolygonColorGray  = polygonops.ColorGray  // 灰色（半透明）
+	PolygonColorBlue  = polygonops.ColorBlue  // 蓝色（半透明）
+	PolygonColorRed   = polygonops.ColorRed   // 红色（半透明）
+	PolygonColorGreen = polygonops.ColorGreen // 绿色（半透明）
+	PolygonColorBlack = polygonops.ColorBlack // 黑色
 )
 
 // 默认输出文件名
@@ -175,22 +201,60 @@ func NewPolygon(points []*Point, options ...ShapeOption) Shape {
 //	innerPoints: 内部多边形的顶点数组，至少需要3个点
 //	options: 可选配置，如颜色、线宽、不透明度等
 func NewHollowPolygon(outerPoints, innerPoints []*Point, options ...ShapeOption) Shape {
-	// 将普通点转换为指针数组
-	outerPtrs := make([]*base.Point, len(outerPoints))
-	for i := range outerPoints {
-		point := outerPoints[i]
-		newPoint := base.Point{X: point.X, Y: point.Y}
-		outerPtrs[i] = &newPoint
-	}
+	return hollowpolygon.New(outerPoints, innerPoints, options...)
+}
 
-	innerPtrs := make([]*base.Point, len(innerPoints))
-	for i := range innerPoints {
-		point := innerPoints[i]
-		newPoint := base.Point{X: point.X, Y: point.Y}
-		innerPtrs[i] = &newPoint
-	}
+// 多边形布尔运算函数
+// -------------------------
 
-	return hollowpolygon.New(outerPtrs, innerPtrs, options...)
+// NewPolygonOverlay 创建叠加显示的多边形操作
+func NewPolygonOverlay(polygonA, polygonB []*Point) *PolygonOperation {
+	return polygonops.NewPolygonOverlay(polygonA, polygonB)
+}
+
+// NewPolygonDifferenceAB 创建差集(A-B)多边形操作
+func NewPolygonDifferenceAB(polygonA, polygonB []*Point) *PolygonOperation {
+	return polygonops.NewPolygonDifferenceAB(polygonA, polygonB)
+}
+
+// NewPolygonDifferenceBA 创建差集(B-A)多边形操作
+func NewPolygonDifferenceBA(polygonA, polygonB []*Point) *PolygonOperation {
+	return polygonops.NewPolygonDifferenceBA(polygonA, polygonB)
+}
+
+// NewPolygonIntersection 创建交集多边形操作
+func NewPolygonIntersection(polygonA, polygonB []*Point) *PolygonOperation {
+	return polygonops.NewPolygonIntersection(polygonA, polygonB)
+}
+
+// DrawPolygonsWithOperations 使用指定的图片和多边形操作列表生成图片
+func DrawPolygonsWithOperations(imageURL string, operations []*PolygonOperation, outputDir, outputName string) (string, error) {
+	return polygonops.DrawPolygonsWithOperations(imageURL, operations, outputDir, outputName)
+}
+
+// NewPolygonColor 创建一个新的多边形颜色
+func NewPolygonColor(r, g, b, a float64) PolygonColor {
+	return polygonops.NewPolygonColor(r, g, b, a)
+}
+
+// WithPolygonFillColor 设置多边形填充颜色
+func WithPolygonFillColor(po *PolygonOperation, color PolygonColor) *PolygonOperation {
+	return po.WithFillColor(color)
+}
+
+// WithPolygonOutlineColor 设置多边形轮廓颜色
+func WithPolygonOutlineColor(po *PolygonOperation, color PolygonColor) *PolygonOperation {
+	return po.WithOutlineColor(color)
+}
+
+// WithPolygonOutlineWidth 设置多边形轮廓宽度
+func WithPolygonOutlineWidth(po *PolygonOperation, width float64) *PolygonOperation {
+	return po.WithOutlineWidth(width)
+}
+
+// WithPolygonDrawOutline 设置多边形是否绘制轮廓
+func WithPolygonDrawOutline(po *PolygonOperation, draw bool) *PolygonOperation {
+	return po.WithDrawOutline(draw)
 }
 
 // 图形配置选项函数
@@ -332,6 +396,19 @@ func WithPreProcess(fn ProcessFunc) ProcessorOption {
 // WithPostProcess 设置图像后处理函数
 func WithPostProcess(fn ProcessFunc) ProcessorOption {
 	return processor.WithPostProcess(fn)
+}
+
+// 实用工具函数
+// -------------------------
+
+// ProcessPolygonOperations 处理多边形操作并绘制图像
+func ProcessPolygonOperations(dc *gg.Context, operations []*PolygonOperation) error {
+	for _, op := range operations {
+		if err := op.Draw(dc); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // CleanupAllTempFiles 清理所有临时文件
