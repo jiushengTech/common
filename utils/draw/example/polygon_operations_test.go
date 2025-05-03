@@ -500,3 +500,190 @@ func TestNewDrawPolygonsAPI(t *testing.T) {
 		fmt.Printf("使用简化API成功生成图片，路径: %s\n", absPath3)
 	}
 }
+
+// TestOutlineOnlyPolygon 测试仅绘制轮廓而不填充的多边形
+func TestOutlineOnlyPolygon(t *testing.T) {
+	fmt.Println("测试仅绘制轮廓不填充的多边形...")
+
+	// 创建五边形的点
+	pentagonPoints := []*draw.Point{
+		{X: 300, Y: 100}, // 顶部点
+		{X: 450, Y: 200}, // 右上点
+		{X: 400, Y: 350}, // 右下点
+		{X: 200, Y: 350}, // 左下点
+		{X: 150, Y: 200}, // 左上点
+	}
+
+	// 创建六边形的点
+	hexagonPoints := []*draw.Point{
+		{X: 300, Y: 150}, // 顶部点
+		{X: 400, Y: 200}, // 右上点
+		{X: 400, Y: 300}, // 右下点
+		{X: 300, Y: 350}, // 底部点
+		{X: 200, Y: 300}, // 左下点
+		{X: 200, Y: 200}, // 左上点
+	}
+
+	// 创建仅有轮廓的多边形操作
+	// 方法1：使用透明填充色配合粗轮廓
+	op1 := polygonops.NewPolygonOverlay(pentagonPoints, nil,
+		polygonops.WithFillColor(&color.RGBA{R: 0, G: 0, B: 0, A: 0}), // 完全透明填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorBlue),
+		polygonops.WithOutlineWidth(3.0))
+
+	// 方法2：直接在处理函数中自定义绘图
+	absPath, err := polygonops.DrawPolygons(
+		polygonops.WithImageURL(exampleImageURL),
+		polygonops.WithOperations([]*polygonops.PolygonOperation{op1}),
+		polygonops.WithOutputDirectory("polygon_outlines"),
+		polygonops.WithOutputFileName("outline_only.png"),
+	)
+
+	if err != nil {
+		t.Errorf("绘制轮廓多边形错误: %v", err)
+	} else {
+		fmt.Printf("成功生成仅轮廓多边形图片，路径: %s\n", absPath)
+	}
+
+	// 方法3：使用底层绘图API直接绘制多边形轮廓
+	processor := draw.NewImageProcessor(
+		exampleImageURL,
+		draw.WithOutputDir("polygon_outlines"),
+		draw.WithOutputName("custom_outline.png"),
+		draw.WithPreProcess(func(dc *gg.Context, width, height float64) error {
+			// 设置线宽和颜色
+			dc.SetLineWidth(5.0)
+			dc.SetColor(base.ColorRed)
+
+			// 绘制六边形轮廓
+			dc.MoveTo(hexagonPoints[0].X, hexagonPoints[0].Y)
+			for i := 1; i < len(hexagonPoints); i++ {
+				dc.LineTo(hexagonPoints[i].X, hexagonPoints[i].Y)
+			}
+			dc.ClosePath()
+			dc.Stroke() // 只描边，不填充
+
+			return nil
+		}),
+	)
+
+	// 处理图像并保存
+	outputPath, err := processor.Process()
+	if err != nil {
+		t.Fatalf("处理轮廓多边形图像失败: %v", err)
+	}
+
+	fmt.Printf("轮廓多边形图像已保存至: %s\n", outputPath)
+}
+
+// TestMultiplePolygons 测试在同一画布上绘制多个多边形
+func TestMultiplePolygons(t *testing.T) {
+	fmt.Println("测试绘制多个多边形...")
+
+	// 创建第一个多边形 - 五边形
+	pentagonPoints := []*draw.Point{
+		{X: 200, Y: 100}, // 顶部点
+		{X: 300, Y: 150}, // 右上点
+		{X: 280, Y: 250}, // 右下点
+		{X: 120, Y: 250}, // 左下点
+		{X: 100, Y: 150}, // 左上点
+	}
+
+	// 创建第二个多边形 - 三角形
+	trianglePoints := []*draw.Point{
+		{X: 400, Y: 120}, // 顶点
+		{X: 500, Y: 280}, // 右下点
+		{X: 300, Y: 280}, // 左下点
+	}
+
+	// 创建第三个多边形 - 矩形
+	rectanglePoints := []*draw.Point{
+		{X: 150, Y: 300}, // 左上
+		{X: 350, Y: 300}, // 右上
+		{X: 350, Y: 400}, // 右下
+		{X: 150, Y: 400}, // 左下
+	}
+
+	// 创建多个多边形操作，每个使用不同颜色的轮廓
+	op1 := polygonops.NewPolygonOverlay(pentagonPoints, nil,
+		polygonops.WithFillColor(&color.RGBA{R: 0, G: 0, B: 0, A: 0}), // 透明填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorBlue), // 蓝色轮廓
+		polygonops.WithOutlineWidth(3.0))
+
+	op2 := polygonops.NewPolygonOverlay(trianglePoints, nil,
+		polygonops.WithFillColor(&color.RGBA{R: 0, G: 0, B: 0, A: 0}), // 透明填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorRed), // 红色轮廓
+		polygonops.WithOutlineWidth(3.0))
+
+	op3 := polygonops.NewPolygonOverlay(rectanglePoints, nil,
+		polygonops.WithFillColor(&color.RGBA{R: 0, G: 0, B: 0, A: 0}), // 透明填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorGreen), // 绿色轮廓
+		polygonops.WithOutlineWidth(3.0))
+
+	// 方法1: 使用操作数组
+	operations := []*polygonops.PolygonOperation{op1, op2, op3}
+	absPath, err := polygonops.DrawPolygonsWithOperations(
+		exampleImageURL,
+		operations,
+		"polygon_multi",
+		"multiple_shapes.png",
+	)
+
+	if err != nil {
+		t.Errorf("绘制多个多边形错误: %v", err)
+	} else {
+		fmt.Printf("成功生成多个多边形图片，路径: %s\n", absPath)
+	}
+
+	// 方法2: 使用AddOperation逐个添加
+	absPath2, err := polygonops.DrawPolygons(
+		polygonops.WithImageURL(exampleImageURL),
+		polygonops.AddOperation(op1),
+		polygonops.AddOperation(op2),
+		polygonops.AddOperation(op3),
+		polygonops.WithOutputDirectory("polygon_multi"),
+		polygonops.WithOutputFileName("multiple_shapes_add.png"),
+	)
+
+	if err != nil {
+		t.Errorf("使用AddOperation绘制多个多边形错误: %v", err)
+	} else {
+		fmt.Printf("使用AddOperation成功生成多个多边形图片，路径: %s\n", absPath2)
+	}
+
+	// 方法3: 使用不同的填充色和半透明效果
+	op4 := polygonops.NewPolygonOverlay(pentagonPoints, nil,
+		polygonops.WithFillColor(base.ColorBlueTranslucent), // 半透明蓝色填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorBlue),
+		polygonops.WithOutlineWidth(2.0))
+
+	op5 := polygonops.NewPolygonOverlay(trianglePoints, nil,
+		polygonops.WithFillColor(base.ColorRedTranslucent), // 半透明红色填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorRed),
+		polygonops.WithOutlineWidth(2.0))
+
+	op6 := polygonops.NewPolygonOverlay(rectanglePoints, nil,
+		polygonops.WithFillColor(base.ColorGreenTranslucent), // 半透明绿色填充
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineColor(base.ColorGreen),
+		polygonops.WithOutlineWidth(2.0))
+
+	absPath3, err := polygonops.DrawPolygons(
+		polygonops.WithImageURL(exampleImageURL),
+		polygonops.WithOperations([]*polygonops.PolygonOperation{op4, op5, op6}),
+		polygonops.WithOutputDirectory("polygon_multi"),
+		polygonops.WithOutputFileName("multiple_shapes_colored.png"),
+	)
+
+	if err != nil {
+		t.Errorf("绘制彩色多边形错误: %v", err)
+	} else {
+		fmt.Printf("成功生成彩色多边形图片，路径: %s\n", absPath3)
+	}
+}

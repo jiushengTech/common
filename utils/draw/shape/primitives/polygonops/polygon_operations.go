@@ -290,7 +290,7 @@ func (po *PolygonOperation) drawIntersection(dc *gg.Context) error {
 // drawOutlines 绘制多边形轮廓
 func (po *PolygonOperation) drawOutlines(dc *gg.Context) {
 	// 设置轮廓颜色和宽度
-	dc.SetColor(po.FillColor)
+	dc.SetColor(po.OutlineColor)
 	dc.SetLineWidth(po.OutlineWidth)
 
 	// 绘制多边形A轮廓
