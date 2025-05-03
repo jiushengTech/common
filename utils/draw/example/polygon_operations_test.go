@@ -2,11 +2,13 @@ package example
 
 import (
 	"fmt"
+	"image/color"
 	"math"
 	"testing"
 
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygonops"
 )
 
@@ -39,15 +41,15 @@ func TestPolygonOperationsBasic(t *testing.T) {
 	}
 
 	// 1. 测试叠加效果
-	opOverlay := polygonops.NewPolygonOverlay(polygonA, polygonB).
-		WithDrawOutline(true).
-		WithOutlineWidth(1.5)
+	opOverlay := polygonops.NewPolygonOverlay(polygonA, polygonB,
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineWidth(1.5))
 
-	absPath, err := polygonops.DrawPolygonsWithOperations(
-		exampleImageURL,
-		[]*polygonops.PolygonOperation{opOverlay},
-		"polygon_operations",
-		"basic_overlay.png",
+	absPath, err := polygonops.DrawPolygons(
+		polygonops.WithImageURL(exampleImageURL),
+		polygonops.WithOperations([]*polygonops.PolygonOperation{opOverlay}),
+		polygonops.WithOutputDirectory("polygon_operations"),
+		polygonops.WithOutputFileName("basic_overlay.png"),
 	)
 
 	if err != nil {
@@ -57,9 +59,9 @@ func TestPolygonOperationsBasic(t *testing.T) {
 	}
 
 	// 2. 测试差集 A-B（矩形减去圆形）
-	opDiffAB := polygonops.NewPolygonDifferenceAB(polygonA, polygonB).
-		WithFillColor(polygonops.ColorRed).
-		WithOutlineWidth(1.5)
+	opDiffAB := polygonops.NewPolygonDifferenceAB(polygonA, polygonB,
+		polygonops.WithFillColor(base.ColorGrayTranslucent),
+		polygonops.WithOutlineWidth(1.5))
 
 	absPath2, err := polygonops.DrawPolygonsWithOperations(
 		exampleImageURL,
@@ -75,9 +77,9 @@ func TestPolygonOperationsBasic(t *testing.T) {
 	}
 
 	// 3. 测试差集 B-A（圆形减去矩形）
-	opDiffBA := polygonops.NewPolygonDifferenceBA(polygonA, polygonB).
-		WithFillColor(polygonops.ColorGreen).
-		WithOutlineWidth(1.5)
+	opDiffBA := polygonops.NewPolygonDifferenceBA(polygonA, polygonB,
+		polygonops.WithFillColor(base.ColorGreen),
+		polygonops.WithOutlineWidth(1.5))
 
 	absPath3, err := polygonops.DrawPolygonsWithOperations(
 		exampleImageURL,
@@ -93,9 +95,9 @@ func TestPolygonOperationsBasic(t *testing.T) {
 	}
 
 	// 4. 测试交集（矩形与圆形的交集）
-	opIntersection := polygonops.NewPolygonIntersection(polygonA, polygonB).
-		WithFillColor(polygonops.Color{R: 0.0, G: 0.0, B: 1.0, A: 0.6}). // 蓝色
-		WithOutlineWidth(1.5)
+	opIntersection := polygonops.NewPolygonIntersection(polygonA, polygonB,
+		polygonops.WithFillColor(&color.RGBA{R: 0.0, G: 0.0, B: 1.0, A: 180}), // 蓝色
+		polygonops.WithOutlineWidth(1.5))
 
 	absPath4, err := polygonops.DrawPolygonsWithOperations(
 		exampleImageURL,
@@ -112,9 +114,9 @@ func TestPolygonOperationsBasic(t *testing.T) {
 
 	// 5. 测试组合效果（在一张图上显示三种操作）
 	combinedOps := []*polygonops.PolygonOperation{
-		polygonops.NewPolygonDifferenceAB(polygonA, polygonB).WithFillColor(polygonops.Color{R: 1.0, G: 0.0, B: 0.0, A: 0.4}),
-		polygonops.NewPolygonDifferenceBA(polygonA, polygonB).WithFillColor(polygonops.Color{R: 0.0, G: 1.0, B: 0.0, A: 0.4}),
-		polygonops.NewPolygonIntersection(polygonA, polygonB).WithFillColor(polygonops.Color{R: 0.0, G: 0.0, B: 1.0, A: 0.4}),
+		polygonops.NewPolygonDifferenceAB(polygonA, polygonB, polygonops.WithFillColor(base.ColorWhite)),
+		polygonops.NewPolygonDifferenceBA(polygonA, polygonB, polygonops.WithFillColor(base.ColorBlack)),
+		polygonops.NewPolygonIntersection(polygonA, polygonB, polygonops.WithFillColor(base.ColorBlue)),
 	}
 
 	absPath5, err := polygonops.DrawPolygonsWithOperations(
@@ -212,10 +214,10 @@ func TestHollowPolygon(t *testing.T) {
 	fmt.Printf("镂空多边形图像已保存至: %s\n", outputPath)
 
 	// 使用多边形布尔运算API实现相同效果
-	opDiffAB := polygonops.NewPolygonDifferenceAB(outerPoints, innerPoints).
-		WithFillColor(polygonops.Color{R: 0.5, G: 0.5, B: 0.5, A: 0.5}).
-		WithDrawOutline(true).
-		WithOutlineWidth(2.0)
+	opDiffAB := polygonops.NewPolygonDifferenceAB(outerPoints, innerPoints,
+		polygonops.WithFillColor(base.ColorMagenta),
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineWidth(2.0))
 
 	absPath2, err := polygonops.DrawPolygonsWithOperations(
 		exampleImageURL,
@@ -231,12 +233,12 @@ func TestHollowPolygon(t *testing.T) {
 	}
 }
 
-// TestAdvancedPolygonShapes 测试复杂多边形形状
+// TestAdvancedPolygonShapes 测试更复杂的多边形形状和操作
 func TestAdvancedPolygonShapes(t *testing.T) {
 	fmt.Println("测试复杂多边形形状和布尔运算...")
 
 	// 创建一个圆角矩形（多边形A）
-	polygonA := []*draw.Point{}
+	var polygonA []*draw.Point
 	rectX1, rectY1 := 150.0, 150.0
 	rectX2, rectY2 := 350.0, 350.0
 	cornerRadius := 30.0
@@ -274,7 +276,7 @@ func TestAdvancedPolygonShapes(t *testing.T) {
 	}
 
 	// 创建一个椭圆（多边形B）
-	polygonB := []*draw.Point{}
+	var polygonB []*draw.Point
 	centerX, centerY := 250.0, 250.0
 	radiusX, radiusY := 120.0, 80.0
 
@@ -287,12 +289,9 @@ func TestAdvancedPolygonShapes(t *testing.T) {
 
 	// 显示所有布尔运算结果在一个图像中
 	combinedOps := []*polygonops.PolygonOperation{
-		polygonops.NewPolygonDifferenceAB(polygonA, polygonB).
-			WithFillColor(polygonops.Color{R: 1.0, G: 0.0, B: 0.0, A: 0.4}),
-		polygonops.NewPolygonDifferenceBA(polygonA, polygonB).
-			WithFillColor(polygonops.Color{R: 0.0, G: 1.0, B: 0.0, A: 0.4}),
-		polygonops.NewPolygonIntersection(polygonA, polygonB).
-			WithFillColor(polygonops.Color{R: 0.0, G: 0.0, B: 1.0, A: 0.4}),
+		polygonops.NewPolygonDifferenceAB(polygonA, polygonB, polygonops.WithFillColor(base.ColorGray)),
+		polygonops.NewPolygonDifferenceBA(polygonA, polygonB, polygonops.WithFillColor(base.ColorBlack)),
+		polygonops.NewPolygonIntersection(polygonA, polygonB, polygonops.WithFillColor(base.ColorCyan)),
 	}
 
 	absPath, err := polygonops.DrawPolygonsWithOperations(
@@ -309,7 +308,7 @@ func TestAdvancedPolygonShapes(t *testing.T) {
 	}
 }
 
-// TestComplexHollowPolygon 测试创建复杂镂空多边形
+// TestComplexHollowPolygon 测试复杂的镂空多边形
 func TestComplexHollowPolygon(t *testing.T) {
 	fmt.Println("测试复杂镂空多边形效果...")
 
@@ -398,21 +397,106 @@ func TestComplexHollowPolygon(t *testing.T) {
 	fmt.Printf("复杂镂空多边形图像已保存至: %s\n", outputPath)
 
 	// 使用多边形布尔运算API实现相同效果
-	opDiffAB := polygonops.NewPolygonDifferenceAB(outerPoints, innerPoints).
-		WithFillColor(polygonops.Color{R: 0.5, G: 0.5, B: 0.5, A: 0.7}).
-		WithDrawOutline(true).
-		WithOutlineWidth(3.0)
+	opDiffAB := polygonops.NewPolygonDifferenceAB(outerPoints, innerPoints,
+		polygonops.WithFillColor(base.ColorMagenta),
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineWidth(2.0))
 
 	absPath2, err := polygonops.DrawPolygonsWithOperations(
 		exampleImageURL,
 		[]*polygonops.PolygonOperation{opDiffAB},
 		"polygon_operations",
-		"complex_hollow_api.png",
+		"hollow_api.png",
 	)
 
 	if err != nil {
-		t.Errorf("使用API绘制复杂镂空多边形错误: %v", err)
+		t.Errorf("使用API绘制镂空多边形错误: %v", err)
 	} else {
-		fmt.Printf("成功使用API生成复杂镂空多边形图片，路径: %s\n", absPath2)
+		fmt.Printf("成功使用API生成镂空多边形图片，路径: %s\n", absPath2)
+	}
+}
+
+// TestNewDrawPolygonsAPI 测试新的基于选项模式的API
+func TestNewDrawPolygonsAPI(t *testing.T) {
+	fmt.Println("测试新的DrawPolygons API（选项模式）...")
+
+	// 创建多边形A（矩形）
+	rectanglePoints := []*draw.Point{
+		{X: 150, Y: 150}, // 左上
+		{X: 450, Y: 150}, // 右上
+		{X: 450, Y: 350}, // 右下
+		{X: 150, Y: 350}, // 左下
+	}
+
+	// 创建多边形B（圆形）
+	circlePoints := []*draw.Point{}
+	centerX, centerY := 300.0, 250.0
+	radius := 100.0
+
+	for i := 0; i < 36; i++ {
+		angle := float64(i) * 2 * math.Pi / 36
+		x := centerX + math.Cos(angle)*radius
+		y := centerY + math.Sin(angle)*radius
+		circlePoints = append(circlePoints, &draw.Point{X: x, Y: y})
+	}
+
+	// 创建三个不同的多边形操作
+	op1 := polygonops.NewPolygonOverlay(rectanglePoints, nil,
+		polygonops.WithFillColor(base.ColorRedTranslucent),
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineWidth(2.0))
+
+	op2 := polygonops.NewPolygonOverlay(circlePoints, nil,
+		polygonops.WithFillColor(base.ColorBlueTranslucent),
+		polygonops.WithDrawOutline(true),
+		polygonops.WithOutlineWidth(2.0))
+
+	op3 := polygonops.NewPolygonIntersection(rectanglePoints, circlePoints,
+		polygonops.WithFillColor(base.ColorGreenTranslucent),
+		polygonops.WithDrawOutline(true))
+
+	// 1. 使用旧API
+	absPath1, err := polygonops.DrawPolygonsWithOperations(
+		exampleImageURL,
+		[]*polygonops.PolygonOperation{op1, op2, op3},
+		"polygon_options",
+		"old_api_result.png",
+	)
+
+	if err != nil {
+		t.Errorf("使用旧API绘制多边形错误: %v", err)
+	} else {
+		fmt.Printf("使用旧API成功生成图片，路径: %s\n", absPath1)
+	}
+
+	// 2. 使用新API（选项模式）
+	absPath2, err := polygonops.DrawPolygons(
+		polygonops.WithImageURL(exampleImageURL),
+		polygonops.WithOperations([]*polygonops.PolygonOperation{op1, op2}),
+		polygonops.AddOperation(op3), // 单独添加一个操作
+		polygonops.WithOutputDirectory("polygon_options"),
+		polygonops.WithOutputFileName("new_api_result.png"),
+	)
+
+	if err != nil {
+		t.Errorf("使用新API绘制多边形错误: %v", err)
+	} else {
+		fmt.Printf("使用新API成功生成图片，路径: %s\n", absPath2)
+	}
+
+	// 3. 使用新API的最简形式
+	basicOp := polygonops.NewPolygonDifferenceAB(rectanglePoints, circlePoints,
+		polygonops.WithFillColor(base.ColorYellow))
+
+	absPath3, err := polygonops.DrawPolygons(
+		polygonops.WithImageURL(exampleImageURL),
+		polygonops.AddOperation(basicOp),
+		// 使用默认输出目录和文件名
+	)
+
+	if err != nil {
+		t.Errorf("使用简化API绘制多边形错误: %v", err)
+	} else {
+		fmt.Printf("使用简化API成功生成图片，路径: %s\n", absPath3)
 	}
 }

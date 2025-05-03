@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -23,7 +24,7 @@ func TestPolygonDrawing(t *testing.T) {
 
 	triangle := draw.NewPolygon(
 		trianglePoints,
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithLineWidth(3.0),
 	)
 
@@ -38,7 +39,7 @@ func TestPolygonDrawing(t *testing.T) {
 
 	pentagon := draw.NewPolygon(
 		pentagonPoints,
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithPolygonFill(false), // 填充
 	)
 
@@ -54,7 +55,7 @@ func TestPolygonDrawing(t *testing.T) {
 
 	irregular := draw.NewPolygon(
 		irregularPoints,
-		draw.WithColor(draw.ColorGreen),
+		draw.WithColor(base.ColorGreen),
 		draw.WithLineWidth(2.0),
 	)
 
@@ -93,7 +94,7 @@ func TestPolygonDrawing(t *testing.T) {
 
 	star := draw.NewPolygon(
 		starPoints,
-		draw.WithColor(draw.ColorYellow),
+		draw.WithColor(base.ColorYellow),
 		draw.WithPolygonFill(false),
 	)
 

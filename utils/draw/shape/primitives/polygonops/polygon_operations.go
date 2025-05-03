@@ -1,9 +1,12 @@
-// Package polygonops 提供多边形布尔运算（交集、差集等）的绘制功能
 package polygonops
 
 import (
+	"fmt"
+	"image/color"
+
 	"github.com/fogleman/gg"
 	"github.com/jiushengTech/common/utils/draw"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
 // PolygonOperation 表示一个多边形操作
@@ -11,15 +14,15 @@ type PolygonOperation struct {
 	// 操作类型
 	Type OperationType
 	// 要处理的多边形A
-	PolygonA []*draw.Point
+	PolygonA []*base.Point
 	// 要处理的多边形B
-	PolygonB []*draw.Point
+	PolygonB []*base.Point
 	// 填充颜色 (RGBA)
-	FillColor Color
+	FillColor *color.RGBA
 	// 是否绘制轮廓
 	DrawOutline bool
 	// 轮廓颜色
-	OutlineColor Color
+	OutlineColor *color.RGBA
 	// 轮廓宽度
 	OutlineWidth float64
 }
@@ -38,93 +41,83 @@ const (
 	OperationIntersection
 )
 
-// Color 表示RGBA颜色
-type Color struct {
-	R, G, B, A float64
-}
-
-// 预定义颜色
-var (
-	ColorGray  = Color{0.5, 0.5, 0.5, 0.3}
-	ColorBlue  = Color{0.0, 0.0, 1.0, 0.3}
-	ColorRed   = Color{1.0, 0.0, 0.0, 0.6}
-	ColorGreen = Color{0.0, 1.0, 0.0, 0.6}
-	ColorBlack = Color{0.0, 0.0, 0.0, 1.0}
-)
-
 // NewPolygonOverlay 创建两个叠加显示的多边形操作
-func NewPolygonOverlay(polygonA, polygonB []*draw.Point) *PolygonOperation {
-	return &PolygonOperation{
+func NewPolygonOverlay(polygonA, polygonB []*base.Point, options ...Option) *PolygonOperation {
+	po := &PolygonOperation{
 		Type:         OperationOverlay,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    ColorGray,
+		FillColor:    base.ColorGray,
 		DrawOutline:  false,
-		OutlineColor: ColorBlack,
+		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
+
+	// 应用选项
+	for _, option := range options {
+		option(po)
+	}
+
+	return po
 }
 
 // NewPolygonDifferenceAB 创建多边形差集操作 A-B
-func NewPolygonDifferenceAB(polygonA, polygonB []*draw.Point) *PolygonOperation {
-	return &PolygonOperation{
+func NewPolygonDifferenceAB(polygonA, polygonB []*base.Point, options ...Option) *PolygonOperation {
+	po := &PolygonOperation{
 		Type:         OperationDifferenceAB,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    ColorRed,
+		FillColor:    base.ColorRed,
 		DrawOutline:  true,
-		OutlineColor: ColorBlack,
+		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
+
+	// 应用选项
+	for _, option := range options {
+		option(po)
+	}
+
+	return po
 }
 
 // NewPolygonDifferenceBA 创建多边形差集操作 B-A
-func NewPolygonDifferenceBA(polygonA, polygonB []*draw.Point) *PolygonOperation {
-	return &PolygonOperation{
+func NewPolygonDifferenceBA(polygonA, polygonB []*base.Point, options ...Option) *PolygonOperation {
+	po := &PolygonOperation{
 		Type:         OperationDifferenceBA,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    ColorGreen,
+		FillColor:    base.ColorGreen,
 		DrawOutline:  true,
-		OutlineColor: ColorBlack,
+		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
+
+	// 应用选项
+	for _, option := range options {
+		option(po)
+	}
+
+	return po
 }
 
 // NewPolygonIntersection 创建多边形交集操作
-func NewPolygonIntersection(polygonA, polygonB []*draw.Point) *PolygonOperation {
-	return &PolygonOperation{
+func NewPolygonIntersection(polygonA, polygonB []*base.Point, options ...Option) *PolygonOperation {
+	po := &PolygonOperation{
 		Type:         OperationIntersection,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    ColorBlue,
+		FillColor:    base.ColorBlue,
 		DrawOutline:  true,
-		OutlineColor: ColorBlack,
+		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
-}
 
-// WithFillColor 设置填充颜色
-func (po *PolygonOperation) WithFillColor(color Color) *PolygonOperation {
-	po.FillColor = color
-	return po
-}
+	// 应用选项
+	for _, option := range options {
+		option(po)
+	}
 
-// WithOutlineColor 设置轮廓颜色
-func (po *PolygonOperation) WithOutlineColor(color Color) *PolygonOperation {
-	po.OutlineColor = color
-	return po
-}
-
-// WithOutlineWidth 设置轮廓宽度
-func (po *PolygonOperation) WithOutlineWidth(width float64) *PolygonOperation {
-	po.OutlineWidth = width
-	return po
-}
-
-// WithDrawOutline 设置是否绘制轮廓
-func (po *PolygonOperation) WithDrawOutline(draw bool) *PolygonOperation {
-	po.DrawOutline = draw
 	return po
 }
 
@@ -149,7 +142,7 @@ func (po *PolygonOperation) drawOverlay(dc *gg.Context) error {
 	// 绘制多边形A
 	if len(po.PolygonA) > 0 {
 		// 设置颜色
-		dc.SetRGBA(po.FillColor.R, po.FillColor.G, po.FillColor.B, po.FillColor.A)
+		dc.SetColor(po.FillColor)
 
 		// 绘制路径
 		dc.MoveTo(po.PolygonA[0].X, po.PolygonA[0].Y)
@@ -163,7 +156,7 @@ func (po *PolygonOperation) drawOverlay(dc *gg.Context) error {
 	// 绘制多边形B
 	if len(po.PolygonB) > 0 {
 		// 使用蓝色半透明
-		dc.SetRGBA(ColorBlue.R, ColorBlue.G, ColorBlue.B, ColorBlue.A)
+		dc.SetColor(base.ColorBlack)
 
 		// 绘制路径
 		dc.MoveTo(po.PolygonB[0].X, po.PolygonB[0].Y)
@@ -185,7 +178,7 @@ func (po *PolygonOperation) drawOverlay(dc *gg.Context) error {
 // drawDifferenceAB 绘制差集 A-B
 func (po *PolygonOperation) drawDifferenceAB(dc *gg.Context) error {
 	// 设置颜色
-	dc.SetRGBA(po.FillColor.R, po.FillColor.G, po.FillColor.B, po.FillColor.A)
+	dc.SetColor(po.FillColor)
 
 	// 先绘制多边形A路径
 	if len(po.PolygonA) > 0 {
@@ -221,7 +214,7 @@ func (po *PolygonOperation) drawDifferenceAB(dc *gg.Context) error {
 // drawDifferenceBA 绘制差集 B-A
 func (po *PolygonOperation) drawDifferenceBA(dc *gg.Context) error {
 	// 设置颜色
-	dc.SetRGBA(po.FillColor.R, po.FillColor.G, po.FillColor.B, po.FillColor.A)
+	dc.SetColor(po.FillColor)
 
 	// 先绘制多边形B路径
 	if len(po.PolygonB) > 0 {
@@ -257,7 +250,7 @@ func (po *PolygonOperation) drawDifferenceBA(dc *gg.Context) error {
 // drawIntersection 绘制交集 A∩B
 func (po *PolygonOperation) drawIntersection(dc *gg.Context) error {
 	// 使用剪裁技术实现交集
-	dc.SetRGBA(po.FillColor.R, po.FillColor.G, po.FillColor.B, po.FillColor.A)
+	dc.SetColor(po.FillColor)
 
 	// 创建路径A
 	if len(po.PolygonA) > 0 {
@@ -297,7 +290,7 @@ func (po *PolygonOperation) drawIntersection(dc *gg.Context) error {
 // drawOutlines 绘制多边形轮廓
 func (po *PolygonOperation) drawOutlines(dc *gg.Context) {
 	// 设置轮廓颜色和宽度
-	dc.SetRGBA(po.OutlineColor.R, po.OutlineColor.G, po.OutlineColor.B, po.OutlineColor.A)
+	dc.SetColor(po.FillColor)
 	dc.SetLineWidth(po.OutlineWidth)
 
 	// 绘制多边形A轮廓
@@ -322,14 +315,46 @@ func (po *PolygonOperation) drawOutlines(dc *gg.Context) {
 }
 
 // DrawPolygonsWithOperations 使用指定的图片和多边形操作列表生成图片
+// 已废弃: 请使用 DrawPolygons 函数代替
 func DrawPolygonsWithOperations(imageURL string, operations []*PolygonOperation, outputDir, outputName string) (string, error) {
+	return DrawPolygons(
+		WithImageURL(imageURL),
+		WithOperations(operations),
+		WithOutputDirectory(outputDir),
+		WithOutputFileName(outputName),
+	)
+}
+
+// DrawPolygons 使用选项模式绘制多边形操作
+func DrawPolygons(options ...DrawOption) (string, error) {
+	// 创建默认配置
+	cfg := &DrawConfig{
+		OutputDir:  "polygon_output",                          // 默认输出目录
+		OutputName: draw.GetDefaultOutputName(draw.FormatPNG), // 默认输出文件名
+	}
+
+	// 应用选项
+	for _, option := range options {
+		option(cfg)
+	}
+
+	// 验证必要的配置
+	if cfg.ImageURL == "" {
+		return "", fmt.Errorf("image URL is required")
+	}
+
+	if len(cfg.Operations) == 0 {
+		return "", fmt.Errorf("at least one polygon operation is required")
+	}
+
+	// 创建处理器
 	processor := draw.NewImageProcessor(
-		imageURL,
-		draw.WithOutputName(outputName),
-		draw.WithOutputDir(outputDir),
+		cfg.ImageURL,
+		draw.WithOutputName(cfg.OutputName),
+		draw.WithOutputDir(cfg.OutputDir),
 		draw.WithPreProcess(func(dc *gg.Context, width, height float64) error {
 			// 依次执行所有多边形操作
-			for _, op := range operations {
+			for _, op := range cfg.Operations {
 				if err := op.Draw(dc); err != nil {
 					return err
 				}

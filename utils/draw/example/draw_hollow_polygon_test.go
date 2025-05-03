@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -34,7 +35,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	hollowRect := draw.NewHollowPolygon(
 		outerPoints,
 		innerPoints,
-		draw.WithColor(draw.ColorGray),
+		draw.WithColor(base.ColorGray),
 		draw.WithHollowPolygonOpacity(0.5), // 不透明度为0.5
 		draw.WithLineWidth(2.0),
 	)
@@ -80,7 +81,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	hollowComplex := draw.NewHollowPolygon(
 		outerComplex,
 		innerPentagon,
-		draw.WithColor(draw.ColorGreen),
+		draw.WithColor(base.ColorGreen),
 		draw.WithHollowPolygonOpacity(0.5), // 不透明度为0.5
 		draw.WithLineWidth(2.5),
 	)
@@ -107,7 +108,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	hollowWithBorder := draw.NewHollowPolygon(
 		outerComplex,
 		innerPentagon,
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithHollowPolygonOpacity(0.3), // 低不透明度
 		draw.WithLineWidth(3.0),
 	)
@@ -115,7 +116,7 @@ func TestHollowPolygonDrawing(t *testing.T) {
 	// 创建内部五边形的实体轮廓
 	innerOutline := draw.NewPolygon(
 		innerPentagon,
-		draw.WithColor(draw.ColorYellow),
+		draw.WithColor(base.ColorYellow),
 		draw.WithLineWidth(2.0),
 	)
 

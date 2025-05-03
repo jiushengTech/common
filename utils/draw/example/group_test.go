@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -18,14 +19,14 @@ func TestShapeGroupDrawing(t *testing.T) {
 	rect1 := draw.NewRectangle(
 		&draw.Point{X: 100, Y: 100},
 		&draw.Point{X: 200, Y: 200},
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithLineWidth(3.0),
 	)
 
 	rect2 := draw.NewRectangle(
 		&draw.Point{X: 300, Y: 150},
 		&draw.Point{X: 400, Y: 250},
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithLineWidth(3.0),
 	)
 
@@ -52,8 +53,8 @@ func TestShapeGroupDrawing(t *testing.T) {
 	yvalues := []float64{0.25, 0.50}
 
 	// 创建竖线组
-	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(draw.ColorWhite))
-	hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues, draw.WithColor(draw.ColorYellow))
+	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(base.ColorWhite))
+	hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues, draw.WithColor(base.ColorYellow))
 
 	// 添加线到测量图形组
 	measureGroup.AddShapes([]draw.Shape{vline, hline})
@@ -65,14 +66,14 @@ func TestShapeGroupDrawing(t *testing.T) {
 	circle1 := draw.NewCircle(
 		&draw.Point{X: 500, Y: 300},
 		20,
-		draw.WithColor(draw.ColorGreen),
+		draw.WithColor(base.ColorGreen),
 		draw.WithFill(true),
 	)
 
 	circle2 := draw.NewCircle(
 		&draw.Point{X: 650, Y: 300},
 		20,
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithFill(true),
 	)
 

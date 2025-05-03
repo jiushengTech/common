@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -25,7 +26,7 @@ func TestDrawLines(t *testing.T) {
 		xvalues := []float64{0.33, 0.45, 0.67, 0.82, 0.91}
 
 		vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues,
-			draw.WithColor(draw.ColorWhite))
+			draw.WithColor(base.ColorWhite))
 
 		// 创建图像处理器并添加图形
 		processor := draw.NewImageProcessor(
@@ -57,7 +58,7 @@ func TestDrawLines(t *testing.T) {
 		xvalues := []float64{0.33, 0.45, 0.67, 0.82, 0.91}
 
 		vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues,
-			draw.WithColor(draw.ColorWhite))
+			draw.WithColor(base.ColorWhite))
 
 		// 创建图像处理器并添加图形
 		processor := draw.NewImageProcessor(
@@ -88,7 +89,7 @@ func TestDrawLines(t *testing.T) {
 		yvalues := []float64{0.25, 0.50, 0.75}
 
 		hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues,
-			draw.WithColor(draw.ColorBlue),
+			draw.WithColor(base.ColorBlue),
 			draw.WithLineWidth(2.0))
 
 		// 创建图像处理器并添加图形
@@ -120,7 +121,7 @@ func TestDrawLines(t *testing.T) {
 		yvalues := []float64{0.25, 0.50, 0.75}
 
 		hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues,
-			draw.WithColor(draw.ColorYellow),
+			draw.WithColor(base.ColorYellow),
 			draw.WithTextPosition(0.1))
 
 		// 创建图像处理器并添加图形
@@ -150,7 +151,7 @@ func TestDrawLines(t *testing.T) {
 				{X: 260, Y: 0},
 			},
 			[]float64{0.3, 0.7},
-			draw.WithColor(draw.ColorRed),
+			draw.WithColor(base.ColorRed),
 			draw.WithTextPosition(0.1), // 偏左侧显示文本
 		)
 
@@ -162,7 +163,7 @@ func TestDrawLines(t *testing.T) {
 				{X: 620, Y: 0},
 			},
 			[]float64{0.3, 0.7},
-			draw.WithColor(draw.ColorBlue),
+			draw.WithColor(base.ColorBlue),
 			draw.WithTextPosition(0.9), // 偏右侧显示文本
 		)
 
@@ -174,7 +175,7 @@ func TestDrawLines(t *testing.T) {
 				{X: 0, Y: 260},
 			},
 			[]float64{0.3, 0.7},
-			draw.WithColor(draw.ColorGreen),
+			draw.WithColor(base.ColorGreen),
 			draw.WithTextPosition(0.1), // 偏上方显示文本
 		)
 
@@ -186,7 +187,7 @@ func TestDrawLines(t *testing.T) {
 				{X: 0, Y: 620},
 			},
 			[]float64{0.3, 0.7},
-			draw.WithColor(draw.ColorOrange),
+			draw.WithColor(base.ColorOrange),
 			draw.WithTextPosition(0.9), // 偏下方显示文本
 		)
 

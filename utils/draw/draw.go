@@ -5,8 +5,6 @@ import (
 	"image/color"
 	"time"
 
-	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw/adapter/polygonops"
 	"github.com/jiushengTech/common/utils/draw/processor"
 	"github.com/jiushengTech/common/utils/draw/shape"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
@@ -49,15 +47,6 @@ type (
 
 	// ProcessFunc 图像处理函数类型
 	ProcessFunc = processor.ProcessFunc
-
-	// PolygonOperation 表示一个多边形操作
-	PolygonOperation = polygonops.PolygonOperation
-
-	// Color 表示RGBA颜色（用于多边形操作）
-	PolygonColor = polygonops.Color
-
-	// OperationType 表示多边形操作类型
-	PolygonOperationType = polygonops.OperationType
 )
 
 // 线条类型常量
@@ -70,37 +59,6 @@ const (
 const (
 	FormatPNG  = processor.FormatPNG  // PNG格式
 	FormatJPEG = processor.FormatJPEG // JPEG格式
-)
-
-// 多边形操作类型常量
-const (
-	OperationOverlay      = polygonops.OperationOverlay      // 叠加显示
-	OperationDifferenceAB = polygonops.OperationDifferenceAB // 差集A-B
-	OperationDifferenceBA = polygonops.OperationDifferenceBA // 差集B-A
-	OperationIntersection = polygonops.OperationIntersection // 交集
-)
-
-// 颜色常量
-var (
-	ColorWhite   = base.ColorWhite   // 白色
-	ColorBlack   = base.ColorBlack   // 黑色
-	ColorRed     = base.ColorRed     // 红色
-	ColorBlue    = base.ColorBlue    // 蓝色
-	ColorGreen   = base.ColorGreen   // 绿色
-	ColorYellow  = base.ColorYellow  // 黄色
-	ColorCyan    = base.ColorCyan    // 青色
-	ColorMagenta = base.ColorMagenta // 品红
-	ColorGray    = base.ColorGray    // 灰色
-	ColorOrange  = base.ColorOrange  // 橙色
-	ColorPurple  = base.ColorPurple  // 紫色
-	ColorBrown   = base.ColorBrown   // 棕色
-
-	// 多边形操作颜色常量
-	PolygonColorGray  = polygonops.ColorGray  // 灰色（半透明）
-	PolygonColorBlue  = polygonops.ColorBlue  // 蓝色（半透明）
-	PolygonColorRed   = polygonops.ColorRed   // 红色（半透明）
-	PolygonColorGreen = polygonops.ColorGreen // 绿色（半透明）
-	PolygonColorBlack = polygonops.ColorBlack // 黑色
 )
 
 // 默认输出文件名
@@ -123,7 +81,7 @@ var Registry = shape.DefaultRegistry()
 //	circle, ok := draw.NewShape("circle",
 //	   draw.WithPoints([]*&draw.Point{{X: 400, Y: 400}}),
 //	   draw.WithRadius(60),
-//	   draw.WithColor(draw.ColorRed),
+//	   draw.WithColor(base.ColorRed),
 //	)
 func NewShape(shapeType string, options ...ShapeOption) (Shape, bool) {
 	return shape.CreateShape(Registry, shapeType, options...)
@@ -131,7 +89,6 @@ func NewShape(shapeType string, options ...ShapeOption) (Shape, bool) {
 
 // NewLine 创建一条线
 func NewLine(lineType LineType, points []*Point, values []float64, options ...ShapeOption) Shape {
-	// 直接调用底层包的构造函数
 	return line.New(lineType, points, values, options...)
 }
 
@@ -204,59 +161,6 @@ func NewHollowPolygon(outerPoints, innerPoints []*Point, options ...ShapeOption)
 	return hollowpolygon.New(outerPoints, innerPoints, options...)
 }
 
-// 多边形布尔运算函数
-// -------------------------
-
-// NewPolygonOverlay 创建叠加显示的多边形操作
-func NewPolygonOverlay(polygonA, polygonB []*Point) *PolygonOperation {
-	return polygonops.NewPolygonOverlay(polygonA, polygonB)
-}
-
-// NewPolygonDifferenceAB 创建差集(A-B)多边形操作
-func NewPolygonDifferenceAB(polygonA, polygonB []*Point) *PolygonOperation {
-	return polygonops.NewPolygonDifferenceAB(polygonA, polygonB)
-}
-
-// NewPolygonDifferenceBA 创建差集(B-A)多边形操作
-func NewPolygonDifferenceBA(polygonA, polygonB []*Point) *PolygonOperation {
-	return polygonops.NewPolygonDifferenceBA(polygonA, polygonB)
-}
-
-// NewPolygonIntersection 创建交集多边形操作
-func NewPolygonIntersection(polygonA, polygonB []*Point) *PolygonOperation {
-	return polygonops.NewPolygonIntersection(polygonA, polygonB)
-}
-
-// DrawPolygonsWithOperations 使用指定的图片和多边形操作列表生成图片
-func DrawPolygonsWithOperations(imageURL string, operations []*PolygonOperation, outputDir, outputName string) (string, error) {
-	return polygonops.DrawPolygonsWithOperations(imageURL, operations, outputDir, outputName)
-}
-
-// NewPolygonColor 创建一个新的多边形颜色
-func NewPolygonColor(r, g, b, a float64) PolygonColor {
-	return polygonops.NewPolygonColor(r, g, b, a)
-}
-
-// WithPolygonFillColor 设置多边形填充颜色
-func WithPolygonFillColor(po *PolygonOperation, color PolygonColor) *PolygonOperation {
-	return po.WithFillColor(color)
-}
-
-// WithPolygonOutlineColor 设置多边形轮廓颜色
-func WithPolygonOutlineColor(po *PolygonOperation, color PolygonColor) *PolygonOperation {
-	return po.WithOutlineColor(color)
-}
-
-// WithPolygonOutlineWidth 设置多边形轮廓宽度
-func WithPolygonOutlineWidth(po *PolygonOperation, width float64) *PolygonOperation {
-	return po.WithOutlineWidth(width)
-}
-
-// WithPolygonDrawOutline 设置多边形是否绘制轮廓
-func WithPolygonDrawOutline(po *PolygonOperation, draw bool) *PolygonOperation {
-	return po.WithDrawOutline(draw)
-}
-
 // 图形配置选项函数
 // -------------------------
 
@@ -321,28 +225,23 @@ func WithHollowPolygonOpacity(opacity float64) ShapeOption {
 	return hollowpolygon.WithOpacity(opacity)
 }
 
+// 处理点数组转换的公共函数
+func convertPointsToBasePoints(points []*Point) []*base.Point {
+	ptrs := make([]*base.Point, len(points))
+	for i, point := range points {
+		ptrs[i] = &base.Point{X: point.X, Y: point.Y}
+	}
+	return ptrs
+}
+
 // WithOuterPoints 设置镂空多边形的外部顶点
 func WithOuterPoints(points []*Point) ShapeOption {
-	// 将普通点转换为指针数组
-	ptrs := make([]*base.Point, len(points))
-	for i := range points {
-		point := points[i]
-		newPoint := base.Point{X: point.X, Y: point.Y}
-		ptrs[i] = &newPoint
-	}
-	return hollowpolygon.WithOuterPoints(ptrs)
+	return hollowpolygon.WithOuterPoints(convertPointsToBasePoints(points))
 }
 
 // WithInnerPoints 设置镂空多边形的内部顶点
 func WithInnerPoints(points []*Point) ShapeOption {
-	// 将普通点转换为指针数组
-	ptrs := make([]*base.Point, len(points))
-	for i := range points {
-		point := points[i]
-		newPoint := base.Point{X: point.X, Y: point.Y}
-		ptrs[i] = &newPoint
-	}
-	return hollowpolygon.WithInnerPoints(ptrs)
+	return hollowpolygon.WithInnerPoints(convertPointsToBasePoints(points))
 }
 
 // 处理器配置选项函数
@@ -400,16 +299,6 @@ func WithPostProcess(fn ProcessFunc) ProcessorOption {
 
 // 实用工具函数
 // -------------------------
-
-// ProcessPolygonOperations 处理多边形操作并绘制图像
-func ProcessPolygonOperations(dc *gg.Context, operations []*PolygonOperation) error {
-	for _, op := range operations {
-		if err := op.Draw(dc); err != nil {
-			return err
-		}
-	}
-	return nil
-}
 
 // CleanupAllTempFiles 清理所有临时文件
 func CleanupAllTempFiles() {

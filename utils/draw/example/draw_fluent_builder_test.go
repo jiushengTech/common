@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -22,7 +23,7 @@ func TestFluentBuilder(t *testing.T) {
 	circle := draw.NewCircle(
 		&draw.Point{X: 300, Y: 300},
 		50,
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithFill(true),
 	)
 	processor.AddShape(circle)
@@ -31,7 +32,7 @@ func TestFluentBuilder(t *testing.T) {
 	rect := draw.NewRectangle(
 		&draw.Point{X: 200, Y: 200},
 		&draw.Point{X: 400, Y: 400},
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithLineWidth(3),
 	)
 	processor.AddShape(rect)
@@ -68,14 +69,14 @@ func processOrganizedWay(imageURL string) (string, error) {
 		draw.NewCircle(
 			&draw.Point{X: 400, Y: 300},
 			100,
-			draw.WithColor(draw.ColorRed),
+			draw.WithColor(base.ColorRed),
 			draw.WithLineWidth(5),
 		),
 		// 创建一个矩形
 		draw.NewRectangle(
 			&draw.Point{X: 350, Y: 250},
 			&draw.Point{X: 450, Y: 350},
-			draw.WithColor(draw.ColorBlue),
+			draw.WithColor(base.ColorBlue),
 			draw.WithFill(true),
 		),
 		// 创建一个线条
@@ -86,7 +87,7 @@ func processOrganizedWay(imageURL string) (string, error) {
 				{X: 200, Y: 400},
 			},
 			nil,
-			draw.WithColor(draw.ColorGreen),
+			draw.WithColor(base.ColorGreen),
 			draw.WithLineWidth(2),
 		),
 	}

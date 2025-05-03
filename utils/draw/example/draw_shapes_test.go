@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/fogleman/gg"
@@ -28,7 +29,7 @@ func TestShapesDrawing(t *testing.T) {
 	xvalues := []float64{0.33, 0.45, 0.67, 0.82, 0.91}
 
 	// 创建垂直线
-	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(draw.ColorWhite))
+	vline := draw.NewLine(draw.VerticalLine, xpoints, xvalues, draw.WithColor(base.ColorWhite))
 
 	// 创建水平线
 	ypoints := []*draw.Point{
@@ -39,7 +40,7 @@ func TestShapesDrawing(t *testing.T) {
 	}
 	yvalues := []float64{0.25, 0.50, 0.75}
 
-	hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues, draw.WithColor(draw.ColorYellow))
+	hline := draw.NewLine(draw.HorizontalLine, ypoints, yvalues, draw.WithColor(base.ColorYellow))
 
 	// 示例2：绘制矩形
 	fmt.Println("示例2：绘制矩形...")
@@ -48,7 +49,7 @@ func TestShapesDrawing(t *testing.T) {
 	rect1 := draw.NewRectangle(
 		&draw.Point{X: 100, Y: 100},
 		&draw.Point{X: 200, Y: 200},
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithLineWidth(3.0),
 	)
 
@@ -56,7 +57,7 @@ func TestShapesDrawing(t *testing.T) {
 	rect2 := draw.NewRectangle(
 		&draw.Point{X: 300, Y: 150},
 		&draw.Point{X: 400, Y: 250},
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithFill(true),
 	)
 
@@ -67,7 +68,7 @@ func TestShapesDrawing(t *testing.T) {
 	circle1 := draw.NewCircle(
 		&draw.Point{X: 500, Y: 300},
 		50,
-		draw.WithColor(draw.ColorGreen),
+		draw.WithColor(base.ColorGreen),
 		draw.WithLineWidth(2.5),
 	)
 
@@ -75,7 +76,7 @@ func TestShapesDrawing(t *testing.T) {
 	circle2 := draw.NewCircle(
 		&draw.Point{X: 650, Y: 300},
 		30,
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithFill(true),
 	)
 
@@ -104,7 +105,7 @@ func TestShapesDrawing(t *testing.T) {
 	circle, ok := draw.NewShape("circle",
 		draw.WithPoints([]*draw.Point{{X: 100, Y: 100}}),
 		draw.WithRadius(60),
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithFill(true),
 	)
 
@@ -114,7 +115,7 @@ func TestShapesDrawing(t *testing.T) {
 
 	rectangle, ok := draw.NewShape("rectangle",
 		draw.WithPoints([]*draw.Point{{X: 200, Y: 350}, {X: 350, Y: 450}}),
-		draw.WithColor(draw.ColorGreen),
+		draw.WithColor(base.ColorGreen),
 		draw.WithFill(true),
 	)
 

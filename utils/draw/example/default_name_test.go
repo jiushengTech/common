@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"strings"
 	"testing"
 	"time"
@@ -18,7 +19,7 @@ func TestDefaultOutputName(t *testing.T) {
 	circle := draw.NewCircle(
 		&draw.Point{X: 150, Y: 100},
 		50,
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithFill(true),
 	)
 

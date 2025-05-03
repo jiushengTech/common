@@ -46,7 +46,7 @@ go get github.com/jiushengTech/common/utils/draw
 rect := draw.NewRectangle(
     &draw.Point{X: 100, Y: 100},
     &draw.Point{X: 200, Y: 200},
-    draw.WithColor(draw.ColorBlue),
+    draw.WithColor(base.ColorBlue),
     draw.WithLineWidth(3.0),
 )
 
@@ -54,7 +54,7 @@ rect := draw.NewRectangle(
 filledRect := draw.NewRectangle(
     &draw.Point{X: 300, Y: 150},
     &draw.Point{X: 400, Y: 250},
-    draw.WithColor(draw.ColorRed),
+    draw.WithColor(base.ColorRed),
     draw.WithFill(true),
 )
 
@@ -62,7 +62,7 @@ filledRect := draw.NewRectangle(
 circle := draw.NewCircle(
     &draw.Point{X: 500, Y: 300},
     50,
-    draw.WithColor(draw.ColorGreen),
+    draw.WithColor(base.ColorGreen),
     draw.WithLineWidth(2.5),
 )
 
@@ -91,7 +91,7 @@ fmt.Printf("图像已保存到: %s\n", outputPath)
 circle, ok := draw.NewShape("circle",
     draw.WithPoints([]*&draw.Point{{X: 400, Y: 400}}),
     draw.WithRadius(60),
-    draw.WithColor(draw.ColorRed),
+    draw.WithColor(base.ColorRed),
     draw.WithFill(true),
 )
 
@@ -119,7 +119,7 @@ processor := draw.NewImageProcessor(
 redTransparent := draw.NewColor(1, 0, 0, 0.5) // 半透明红色
 
 // 使用现有颜色并添加透明度
-blueTransparent := draw.ColorToRGBA(draw.ColorBlue, 0.7) // 70%不透明度的蓝色
+blueTransparent := base.ColorToRGBA(base.ColorBlue, 0.7) // 70%不透明度的蓝色
 ```
 
 ### 使用预处理和后处理功能
@@ -224,7 +224,7 @@ if err != nil {
 
 ```go
 // 在程序结束时清理所有临时文件
-defer draw.CleanupAllTempFiles()
+defer base.CleanupAllTempFiles()
 ```
 
 ## 预设颜色

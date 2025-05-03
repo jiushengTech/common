@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -16,7 +17,7 @@ func TestAbsolutePathWithShapes(t *testing.T) {
 	circle := draw.NewCircle(
 		&draw.Point{X: 400, Y: 300},
 		100,
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithLineWidth(5),
 	)
 
@@ -24,7 +25,7 @@ func TestAbsolutePathWithShapes(t *testing.T) {
 	rect := draw.NewRectangle(
 		&draw.Point{X: 200, Y: 200},
 		&draw.Point{X: 600, Y: 400},
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithLineWidth(3),
 		draw.WithFill(false),
 	)

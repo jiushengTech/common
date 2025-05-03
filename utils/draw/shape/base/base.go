@@ -29,19 +29,24 @@ type Shape interface {
 
 // 颜色常量 (RGB值，范围0-1)
 var (
-	ColorWhite   = &color.RGBA{R: 1, G: 1, B: 1, A: 255}       // 不透明白色
-	ColorBlack   = &color.RGBA{A: 255}                         // 不透明黑色
-	ColorRed     = &color.RGBA{R: 1, A: 255}                   // 不透明红色
-	ColorBlue    = &color.RGBA{B: 1, A: 255}                   // 不透明蓝色
-	ColorGreen   = &color.RGBA{G: 1, A: 255}                   // 不透明绿色
-	ColorYellow  = &color.RGBA{R: 1, G: 1, A: 255}             // 黄色
-	ColorCyan    = &color.RGBA{G: 1, B: 1, A: 255}             // 不透明青色
-	ColorMagenta = &color.RGBA{R: 1, B: 1, A: 255}             // 不透明品红
+	ColorWhite   = &color.RGBA{R: 255, G: 255, B: 255, A: 255} // 不透明白色
+	ColorBlack   = &color.RGBA{R: 0, G: 0, B: 0, A: 255}       // 不透明黑色
+	ColorRed     = &color.RGBA{R: 255, G: 0, B: 0, A: 255}     // 不透明红色
+	ColorBlue    = &color.RGBA{R: 0, G: 0, B: 255, A: 255}     // 不透明蓝色
+	ColorGreen   = &color.RGBA{R: 0, G: 255, B: 0, A: 255}     // 不透明绿色
+	ColorYellow  = &color.RGBA{R: 255, G: 255, B: 0, A: 255}   // 黄色
+	ColorCyan    = &color.RGBA{R: 0, G: 255, B: 255, A: 255}   // 不透明青色
+	ColorMagenta = &color.RGBA{R: 255, G: 0, B: 255, A: 255}   // 不透明品红
 	ColorGray    = &color.RGBA{R: 128, G: 128, B: 128, A: 255} // 灰色
-	ColorOrange  = &color.RGBA{R: 255, G: 165, A: 255}         // 橙色
-	ColorPurple  = &color.RGBA{R: 128, B: 128, A: 255}         // 紫色
+	ColorOrange  = &color.RGBA{R: 255, G: 165, B: 0, A: 255}   // 橙色
+	ColorPurple  = &color.RGBA{R: 128, G: 0, B: 128, A: 255}   // 紫色
 	ColorBrown   = &color.RGBA{R: 139, G: 69, B: 19, A: 255}   // 棕色
 
+	ColorGrayTranslucent  = &color.RGBA{R: 128, G: 128, B: 128, A: 127} // 灰色（半透明）
+	ColorBlueTranslucent  = &color.RGBA{R: 0, G: 0, B: 255, A: 127}     // 蓝色（半透明）
+	ColorRedTranslucent   = &color.RGBA{R: 255, G: 0, B: 0, A: 127}     // 红色（半透明）
+	ColorGreenTranslucent = &color.RGBA{R: 0, G: 255, B: 0, A: 127}     // 绿色（半透明）
+	ColorBlackTranslucent = &color.RGBA{R: 0, G: 0, B: 0, A: 127}       // 黑色（半透明）
 )
 
 // Color 表示RGBA颜色

@@ -2,6 +2,7 @@ package example
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"testing"
 
 	"github.com/jiushengTech/common/utils/draw"
@@ -43,7 +44,7 @@ func processWithFluentAPI(imageURL string) (string, error) {
 	circle := draw.NewCircle(
 		&draw.Point{X: 400, Y: 300},
 		100,
-		draw.WithColor(draw.ColorRed),
+		draw.WithColor(base.ColorRed),
 		draw.WithLineWidth(5),
 	)
 	processor.AddShape(circle)
@@ -52,7 +53,7 @@ func processWithFluentAPI(imageURL string) (string, error) {
 	rect := draw.NewRectangle(
 		&draw.Point{X: 200, Y: 200},
 		&draw.Point{X: 600, Y: 400},
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithLineWidth(3),
 		draw.WithFill(false),
 	)
@@ -81,7 +82,7 @@ func processWithCompositeShapes(imageURL string) (string, error) {
 		circle := draw.NewCircle(
 			&draw.Point{X: 300 + float64(i*60), Y: 200},
 			20,
-			draw.WithColor(draw.ColorRed),
+			draw.WithColor(base.ColorRed),
 			draw.WithFill(true),
 		)
 		group.AddShape(circle)
@@ -91,7 +92,7 @@ func processWithCompositeShapes(imageURL string) (string, error) {
 	rect := draw.NewRectangle(
 		&draw.Point{X: 250, Y: 250},
 		&draw.Point{X: 550, Y: 350},
-		draw.WithColor(draw.ColorBlue),
+		draw.WithColor(base.ColorBlue),
 		draw.WithLineWidth(2),
 	)
 	group.AddShape(rect)
