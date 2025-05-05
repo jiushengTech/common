@@ -8,13 +8,11 @@ import (
 )
 
 func GetCurrentPath() string {
-	var absPath string
 	_, filename, _, ok := runtime.Caller(1)
 	if ok {
-		absPath = filepath.Dir(filename)
+		return filepath.Dir(filename)
 	}
-
-	return absPath
+	return ""
 }
 
 func GetCurrentDateOnlyAsDir(path string) string {
