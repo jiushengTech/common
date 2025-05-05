@@ -2,6 +2,8 @@ package fileutil
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 )
@@ -114,4 +116,57 @@ func deleteDirectoryContentsInDir(dir string) error {
 	})
 
 	return err
+}
+
+// DownloadFile 根据给定的 URL 下载文件并保存到本地，返回本地文件路径
+func DownloadFile(url, downloadDir string) (string, error) {
+	// 解析文件名，默认从 URL 获取文件名
+	fileName := filepath.Base(url)
+	if fileName == "" {
+		return "", fmt.Errorf("unable to extract file name from URL: %s", url)
+	}
+
+	// 如果没有指定下载目录，则默认使用当前目录
+	if downloadDir == "" {
+		downloadDir = "."
+	}
+
+	// 确保下载目录存在
+	err := os.MkdirAll(downloadDir, os.ModePerm)
+	if err != nil {
+		return "", fmt.Errorf("error creating directory %s: %v", downloadDir, err)
+	}
+
+	// 构建本地文件路径
+	filePath := filepath.Join(downloadDir, fileName)
+
+	// 发送 GET 请求下载文件
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("error downloading file from URL %s: %v", url, err)
+	}
+	defer resp.Body.Close()
+
+	// 检查响应状态码
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("failed to download file, HTTP status code: %d", resp.StatusCode)
+	}
+
+	// 创建本地文件
+	outFile, err := os.Create(filePath)
+	if err != nil {
+		return "", fmt.Errorf("error creating file %s: %v", filePath, err)
+	}
+	defer outFile.Close()
+
+	// 将下载的内容写入文件
+	_, err = io.Copy(outFile, resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("error saving file %s: %v", filePath, err)
+	}
+
+	fmt.Printf("File downloaded successfully: %s\n", filePath)
+
+	// 返回下载后的本地文件路径
+	return filePath, nil
 }
