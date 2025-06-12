@@ -1,11 +1,9 @@
 package processor
 
 import (
+	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"path/filepath"
 	"strings"
-	"time"
-
-	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
 // Option 是图像设置的函数选项接口
@@ -15,7 +13,7 @@ type Option func(*ImageProcessor)
 func WithOutputName(name string) Option {
 	return func(p *ImageProcessor) {
 		if name == "" {
-			p.Output = GetDefaultOutputName(p.Format)
+			p.OutputName = GetDefaultOutputName(p.Format)
 		} else {
 			// 确保扩展名与格式一致
 			ext := string(p.Format)
@@ -23,7 +21,7 @@ func WithOutputName(name string) Option {
 				baseName := strings.TrimSuffix(name, filepath.Ext(name))
 				name = baseName + "." + ext
 			}
-			p.Output = name
+			p.OutputName = name
 		}
 	}
 }
@@ -31,7 +29,7 @@ func WithOutputName(name string) Option {
 // WithTimeBasedName 设置输出文件名为当前时间
 func WithTimeBasedName() Option {
 	return func(p *ImageProcessor) {
-		p.Output = GetDefaultOutputName(p.Format)
+		p.OutputName = GetDefaultOutputName(p.Format)
 	}
 }
 
@@ -66,9 +64,9 @@ func WithOutputFormat(format OutputFormat) Option {
 
 		// 自动更新文件扩展名
 		ext := string(format)
-		if !strings.HasSuffix(p.Output, "."+ext) && ext != "" {
-			baseName := strings.TrimSuffix(p.Output, filepath.Ext(p.Output))
-			p.Output = baseName + "." + ext
+		if !strings.HasSuffix(p.OutputName, "."+ext) && ext != "" {
+			baseName := strings.TrimSuffix(p.OutputName, filepath.Ext(p.OutputName))
+			p.OutputName = baseName + "." + ext
 		}
 	}
 }
@@ -86,15 +84,6 @@ func WithJpegQuality(quality int) Option {
 	}
 }
 
-// WithRequestTimeout 设置HTTP请求超时时间
-func WithRequestTimeout(timeout time.Duration) Option {
-	return func(p *ImageProcessor) {
-		if timeout > 0 {
-			p.RequestTimeout = timeout
-		}
-	}
-}
-
 // WithPreProcess 设置预处理函数
 func WithPreProcess(fn ProcessFunc) Option {
 	return func(p *ImageProcessor) {
@@ -107,10 +96,4 @@ func WithPostProcess(fn ProcessFunc) Option {
 	return func(p *ImageProcessor) {
 		p.PostProcess = fn
 	}
-}
-
-// GetTimeBasedFileName 返回以当前时间格式化的文件名
-// 兼容旧函数，实际上调用 GetDefaultOutputName
-func GetTimeBasedFileName(format OutputFormat) string {
-	return GetDefaultOutputName(format)
 }

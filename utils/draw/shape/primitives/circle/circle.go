@@ -2,9 +2,9 @@ package circle
 
 import (
 	"fmt"
-	"image/color"
 
 	"github.com/fogleman/gg"
+	"github.com/jiushengTech/common/utils/draw/colorx"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
@@ -15,39 +15,22 @@ type Circle struct {
 	Fill   bool    `json:"fill"`   // 是否填充
 }
 
-// SetColor 设置颜色
-func (c *Circle) SetColor(color *color.RGBA) {
-	c.Color = color
-}
-
-// SetLineWidth 设置线宽
-func (c *Circle) SetLineWidth(width float64) {
-	c.LineWidth = width
-}
-
-// SetPoints 设置点集合
-func (c *Circle) SetPoints(points []*base.Point) {
-	c.Points = points
-}
-
 // New 创建一个新的圆形
-// points 需要包含圆心
-func New(center *base.Point, radius float64, options ...base.Option) *Circle {
+// radius 圆的半径，fill 是否填充
+func New(radius float64, fill bool, options ...base.Option) *Circle {
 	circle := &Circle{
 		BaseShape: base.BaseShape{
 			ShapeType: "circle",
-			Points:    []*base.Point{center},
-			Color:     base.ColorYellow, // 默认黄色
+			Points:    []*base.Point{},
+			Color:     colorx.Green,
 			LineWidth: 2.0,
 		},
 		Radius: radius,
-		Fill:   false,
+		Fill:   fill,
 	}
 
 	// 应用所有选项
-	for _, option := range options {
-		option(circle)
-	}
+	base.ApplyOptions(&circle.BaseShape, options...)
 
 	return circle
 }
@@ -80,46 +63,4 @@ func (c *Circle) Draw(dc *gg.Context, width, height float64) error {
 	}
 
 	return nil
-}
-
-// Factory 创建圆形的工厂
-type Factory struct{}
-
-// Create 创建圆形
-func (f Factory) Create(options ...base.Option) base.Shape {
-	circle := &Circle{
-		BaseShape: base.BaseShape{
-			ShapeType: "circle",
-			Points:    []*base.Point{},
-			Color:     base.ColorYellow, // 默认黄色
-			LineWidth: 2.0,
-		},
-		Radius: 10, // 默认半径
-		Fill:   false,
-	}
-
-	// 应用所有选项
-	for _, option := range options {
-		option(circle)
-	}
-
-	return circle
-}
-
-// WithRadius 设置圆的半径
-func WithRadius(radius float64) base.Option {
-	return func(s interface{}) {
-		if circle, ok := s.(*Circle); ok {
-			circle.Radius = radius
-		}
-	}
-}
-
-// WithFill 设置是否填充
-func WithFill(fill bool) base.Option {
-	return func(s interface{}) {
-		if circle, ok := s.(*Circle); ok {
-			circle.Fill = fill
-		}
-	}
 }

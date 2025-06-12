@@ -1,7 +1,7 @@
 package idutil
 
 import (
-	"github.com/sony/sonyflake"
+	"github.com/sony/sonyflake/v2"
 	"time"
 )
 
@@ -16,14 +16,14 @@ func WithStartTime(startTime time.Time) Option {
 }
 
 // WithMachineID 设置 MachineID 选项
-func WithMachineID(machineID func() (uint16, error)) Option {
+func WithMachineID(machineID func() (int, error)) Option {
 	return func(settings *sonyflake.Settings) {
 		settings.MachineID = machineID
 	}
 }
 
 // WithCheckMachineID 设置 CheckMachineID 选项
-func WithCheckMachineID(checkMachineID func(uint16) bool) Option {
+func WithCheckMachineID(checkMachineID func(int) bool) Option {
 	return func(settings *sonyflake.Settings) {
 		settings.CheckMachineID = checkMachineID
 	}

@@ -2,7 +2,8 @@ package idutil
 
 import (
 	"fmt"
-	"github.com/sony/sonyflake"
+	"github.com/sony/sonyflake/v2"
+	"math/rand"
 	"time"
 )
 
@@ -25,31 +26,18 @@ func InitSnowflake(opts ...Option) (*sonyflake.Sonyflake, error) {
 }
 
 func GetId() int64 {
-	var id uint64
-	var err error
-	for i := 0; i < 3; i++ {
-		id, err = sf.NextID()
-		if err == nil {
-			return int64(id)
-		}
-		_ = fmt.Errorf("雪花id获取失败，重试次数: %d", i+1)
-		time.Sleep(1 * time.Millisecond)
-	}
-	_ = fmt.Errorf("雪花id获取失败，已重试3次")
-	return -1 // 失败时返回一个默认值，视情况而定
-}
-
-func GetUId() uint64 {
-	var id uint64
+	var id int64
 	var err error
 	for i := 0; i < 3; i++ {
 		id, err = sf.NextID()
 		if err == nil {
 			return id
 		}
-		_ = fmt.Errorf("雪花id获取失败，重试次数: %d", i+1)
+		fmt.Printf("雪花ID获取失败，重试次数: %d，错误: %v\n", i+1, err)
 		time.Sleep(1 * time.Millisecond)
 	}
-	_ = fmt.Errorf("雪花id获取失败，已重试3次")
-	return 0 // 失败时返回一个默认值，视情况而定
+
+	fmt.Println("雪花ID获取失败，已重试3次，使用随机ID替代")
+	// 返回64位正整数
+	return rand.Int63()
 }

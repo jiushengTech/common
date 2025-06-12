@@ -8,7 +8,7 @@ require (
 	github.com/apache/pulsar-client-go v0.14.0
 	github.com/apache/rocketmq-client-go/v2 v2.1.2
 	github.com/apache/rocketmq-clients/golang/v5 v5.1.2
-	github.com/apache/thrift v0.21.0
+	github.com/apache/thrift v0.22.0
 	github.com/eclipse/paho.mqtt.golang v1.5.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-kratos/kratos/v2 v2.8.4
@@ -25,7 +25,7 @@ require (
 	github.com/nsqio/go-nsq v1.1.0
 	github.com/rabbitmq/amqp091-go v1.9.0
 	github.com/segmentio/kafka-go v0.4.47
-	github.com/sony/sonyflake v1.2.0
+	github.com/sony/sonyflake v1.2.1
 	github.com/stretchr/testify v1.10.0
 	github.com/tealeg/xlsx v1.0.5
 	github.com/vektah/gqlparser/v2 v2.5.19
@@ -152,6 +152,7 @@ require (
 	github.com/redis/go-redis/v9 v9.7.1 // indirect
 	github.com/robfig/cron/v3 v3.0.1 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
+	github.com/sony/sonyflake/v2 v2.2.0 // indirect
 	github.com/sosodev/duration v1.3.1 // indirect
 	github.com/spaolacci/murmur3 v1.1.0 // indirect
 	github.com/spf13/cast v1.7.1 // indirect

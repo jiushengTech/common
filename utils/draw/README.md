@@ -27,7 +27,7 @@ draw/
 │   └── primitives/    # 基本图形
 │       ├── circle/    # 圆形实现
 │       ├── line/      # 线条实现
-│       └── rectangle/ # 矩形实现
+│       └── polygon/   # 多边形实现（包括三角形、矩形等）
 └── example/           # 使用示例
 ```
 
@@ -42,42 +42,49 @@ go get github.com/jiushengTech/common/utils/draw
 ### 创建和绘制基本图形
 
 ```go
-// 创建矩形
-rect := draw.NewRectangle(
-    &draw.Point{X: 100, Y: 100},
-    &draw.Point{X: 200, Y: 200},
-    draw.WithColor(base.ColorBlue),
-    draw.WithLineWidth(3.0),
+// 创建矩形（使用多边形）
+rect := polygon.New(false, // 不填充
+    base.WithPoints([]*base.Point{
+        {X: 100, Y: 100}, // 左上角
+        {X: 200, Y: 100}, // 右上角
+        {X: 200, Y: 200}, // 右下角
+        {X: 100, Y: 200}, // 左下角
+    }),
+    base.WithColor(colorx.Blue),
+    base.WithLineWidth(3.0),
 )
 
 // 创建填充矩形
-filledRect := draw.NewRectangle(
-    &draw.Point{X: 300, Y: 150},
-    &draw.Point{X: 400, Y: 250},
-    draw.WithColor(base.ColorRed),
-    draw.WithFill(true),
+filledRect := polygon.New(true, // 填充
+    base.WithPoints([]*base.Point{
+        {X: 300, Y: 150}, // 左上角
+        {X: 400, Y: 150}, // 右上角
+        {X: 400, Y: 250}, // 右下角
+        {X: 300, Y: 250}, // 左下角
+    }),
+    base.WithColor(colorx.Red),
 )
 
 // 创建圆形
-circle := draw.NewCircle(
-    &draw.Point{X: 500, Y: 300},
-    50,
-    draw.WithColor(base.ColorGreen),
-    draw.WithLineWidth(2.5),
+circleShape := circle.New(50.0, false, // 半径50，不填充
+    base.WithPoints([]*base.Point{
+        {X: 500, Y: 300}, // 圆心
+    }),
+    base.WithColor(colorx.Green),
+    base.WithLineWidth(2.5),
 )
 
 // 创建图像处理器并添加图形
-processor := draw.NewImageProcessor(
+imgProcessor := processor.NewImageProcessor(
     "input.jpg",  // 也支持在线URL
-    draw.WithOutputDir("result"),
-    draw.WithTimeBasedName(),
-    draw.WithShape(rect),
-    draw.WithShape(filledRect),
-    draw.WithShape(circle),
+    processor.WithOutputDir("result"),
+    processor.WithShape(rect),
+    processor.WithShape(filledRect),
+    processor.WithShape(circleShape),
 )
 
 // 处理图像
-outputPath, err := processor.Process()
+outputPath, err := imgProcessor.Process()
 if err != nil {
     log.Fatalf("处理图像失败: %v", err)
 }

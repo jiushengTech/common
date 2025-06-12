@@ -39,6 +39,7 @@ bower_components
 
 # Compiled binary addons (https://nodejs.org/api/addons.html)
 
-*.idea
-*.vscode
-*.cursor
+# Editor directories and files
+.idea
+.vscode
+.cursor

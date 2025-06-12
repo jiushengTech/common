@@ -2,10 +2,10 @@ package line
 
 import (
 	"fmt"
-	"image/color"
 	"sort"
 
 	"github.com/fogleman/gg"
+	"github.com/jiushengTech/common/utils/draw/colorx"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"golang.org/x/image/font/basicfont"
 )
@@ -21,47 +21,56 @@ const (
 
 // Line 表示线条图形
 type Line struct {
-	base.BaseShape           // 嵌入基础结构体
-	Type           Type      `json:"line_type"`     // 线条类型
-	Values         []float64 `json:"values"`        // 点之间的值（长度比点少1）
-	TextPosition   float64   `json:"text_position"` // 文本位置(0-1之间的值，表示在两条线之间的位置比例)
-}
-
-// SetColor 设置颜色
-func (l *Line) SetColor(color *color.RGBA) {
-	l.Color = color
-}
-
-// SetLineWidth 设置线宽
-func (l *Line) SetLineWidth(width float64) {
-	l.LineWidth = width
-}
-
-// SetPoints 设置点集合
-func (l *Line) SetPoints(points []*base.Point) {
-	l.Points = points
+	base.BaseShape
+	Type         Type      `json:"line_type"`     // 线条类型
+	Values       []float64 `json:"values"`        // 点之间的值（长度比点少1）
+	TextPosition float64   `json:"text_position"` // 文本位置(0-1之间的值，表示在两条线之间的位置比例)
 }
 
 // New 创建一条线
-func New(lineType Type, points []*base.Point, values []float64, options ...base.Option) *Line {
+// lineType 线条类型，textPosition 文本位置(0-1之间)
+func New(lineType Type, textPosition float64, options ...base.Option) *Line {
 	line := &Line{
 		BaseShape: base.BaseShape{
 			ShapeType: "line",
-			Points:    points,
-			Color:     base.ColorYellow, // 默认黄色
+			Points:    []*base.Point{},
+			Color:     colorx.Yellow,
 			LineWidth: 2.0,
 		},
 		Type:         lineType,
-		Values:       values,
-		TextPosition: 0.5, // 默认在中间位置
+		Values:       []float64{},
+		TextPosition: textPosition,
 	}
 
 	// 应用所有选项
-	for _, option := range options {
-		option(line)
-	}
+	base.ApplyOptions(&line.BaseShape, options...)
+
+	// 根据线条类型对点进行排序
+	line.sortPoints()
 
 	return line
+}
+
+// SetValues 设置线条的值集合
+func (l *Line) SetValues(values []float64) {
+	l.Values = values
+}
+
+// sortPoints 根据线条类型对点进行排序
+func (l *Line) sortPoints() {
+	if len(l.Points) > 1 {
+		if l.Type == Vertical {
+			// 按X坐标排序
+			sort.Slice(l.Points, func(i, j int) bool {
+				return l.Points[i].X < l.Points[j].X
+			})
+		} else if l.Type == Horizontal {
+			// 按Y坐标排序
+			sort.Slice(l.Points, func(i, j int) bool {
+				return l.Points[i].Y < l.Points[j].Y
+			})
+		}
+	}
 }
 
 // Draw 实现Shape接口的绘制方法
@@ -148,79 +157,4 @@ func drawText(dc *gg.Context, text string, x, y float64) {
 	dc.SetRGB(1, 1, 1)
 	dc.DrawStringAnchored(text, x, y, 0.5, 0.5)
 	dc.Fill()
-}
-
-// Factory 创建各种线条的工厂
-type Factory struct {
-	LineType Type
-}
-
-// Create 创建线条
-func (f Factory) Create(options ...base.Option) base.Shape {
-	line := &Line{
-		BaseShape: base.BaseShape{
-			ShapeType: "line",
-			Points:    []*base.Point{},
-			Color:     base.ColorYellow, // 默认黄色
-			LineWidth: 2.0,
-		},
-		Type:         f.LineType,
-		Values:       []float64{},
-		TextPosition: 0.5, // 默认在中间位置
-	}
-
-	// 应用所有选项
-	for _, option := range options {
-		option(line)
-	}
-
-	// 根据线条类型对点进行排序
-	if len(line.Points) > 1 {
-		if line.Type == Vertical {
-			// 按X坐标排序
-			sort.Slice(line.Points, func(i, j int) bool {
-				return line.Points[i].X < line.Points[j].X
-			})
-		} else if line.Type == Horizontal {
-			// 按Y坐标排序
-			sort.Slice(line.Points, func(i, j int) bool {
-				return line.Points[i].Y < line.Points[j].Y
-			})
-		}
-	}
-
-	return line
-}
-
-// WithValues 设置线条的值集合
-func WithValues(values []float64) base.Option {
-	return func(s interface{}) {
-		if line, ok := s.(*Line); ok {
-			line.Values = values
-		}
-	}
-}
-
-// WithLineType 设置线条类型
-func WithLineType(lineType Type) base.Option {
-	return func(s interface{}) {
-		if line, ok := s.(*Line); ok {
-			line.Type = lineType
-		}
-	}
-}
-
-// WithTextPosition 设置线条文本位置
-func WithTextPosition(position float64) base.Option {
-	return func(s interface{}) {
-		if line, ok := s.(*Line); ok {
-			// 确保位置在0-1之间
-			if position < 0 {
-				position = 0
-			} else if position > 1 {
-				position = 1
-			}
-			line.TextPosition = position
-		}
-	}
 }

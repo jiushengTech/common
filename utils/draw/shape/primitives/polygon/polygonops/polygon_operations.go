@@ -2,10 +2,11 @@ package polygonops
 
 import (
 	"fmt"
+	"github.com/jiushengTech/common/utils/draw/colorx"
+	"github.com/jiushengTech/common/utils/draw/processor"
 	"image/color"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw"
 	"github.com/jiushengTech/common/utils/draw/shape/base"
 )
 
@@ -47,9 +48,7 @@ func NewPolygonOverlay(polygonA, polygonB []*base.Point, options ...Option) *Pol
 		Type:         OperationOverlay,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    base.ColorGray,
 		DrawOutline:  false,
-		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
 
@@ -67,9 +66,7 @@ func NewPolygonDifferenceAB(polygonA, polygonB []*base.Point, options ...Option)
 		Type:         OperationDifferenceAB,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    base.ColorRed,
 		DrawOutline:  true,
-		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
 
@@ -87,9 +84,7 @@ func NewPolygonDifferenceBA(polygonA, polygonB []*base.Point, options ...Option)
 		Type:         OperationDifferenceBA,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    base.ColorGreen,
 		DrawOutline:  true,
-		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
 
@@ -107,9 +102,7 @@ func NewPolygonIntersection(polygonA, polygonB []*base.Point, options ...Option)
 		Type:         OperationIntersection,
 		PolygonA:     polygonA,
 		PolygonB:     polygonB,
-		FillColor:    base.ColorBlue,
 		DrawOutline:  true,
-		OutlineColor: base.ColorBlack,
 		OutlineWidth: 1.0,
 	}
 
@@ -156,7 +149,7 @@ func (po *PolygonOperation) drawOverlay(dc *gg.Context) error {
 	// 绘制多边形B
 	if len(po.PolygonB) > 0 {
 		// 使用蓝色半透明
-		dc.SetColor(base.ColorBlack)
+		dc.SetColor(colorx.Green)
 
 		// 绘制路径
 		dc.MoveTo(po.PolygonB[0].X, po.PolygonB[0].Y)
@@ -329,8 +322,8 @@ func DrawPolygonsWithOperations(imageURL string, operations []*PolygonOperation,
 func DrawPolygons(options ...DrawOption) (string, error) {
 	// 创建默认配置
 	cfg := &DrawConfig{
-		OutputDir:  "polygon_output",                          // 默认输出目录
-		OutputName: draw.GetDefaultOutputName(draw.FormatPNG), // 默认输出文件名
+		OutputDir:  "polygon_output",                                    // 默认输出目录
+		OutputName: processor.GetDefaultOutputName(processor.FormatPNG), // 默认输出文件名
 	}
 
 	// 应用选项
@@ -348,11 +341,11 @@ func DrawPolygons(options ...DrawOption) (string, error) {
 	}
 
 	// 创建处理器
-	processor := draw.NewImageProcessor(
+	p := processor.NewImageProcessor(
 		cfg.ImageURL,
-		draw.WithOutputName(cfg.OutputName),
-		draw.WithOutputDir(cfg.OutputDir),
-		draw.WithPreProcess(func(dc *gg.Context, width, height float64) error {
+		processor.WithOutputName(cfg.OutputName),
+		processor.WithOutputDir(cfg.OutputDir),
+		processor.WithPreProcess(func(dc *gg.Context, width, height float64) error {
 			// 依次执行所有多边形操作
 			for _, op := range cfg.Operations {
 				if err := op.Draw(dc); err != nil {
@@ -364,5 +357,5 @@ func DrawPolygons(options ...DrawOption) (string, error) {
 	)
 
 	// 处理图像并返回路径
-	return processor.Process()
+	return p.Process()
 }
