@@ -3,7 +3,7 @@ package polygonops
 import (
 	"image/color"
 
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
 )
 
 // Option 定义多边形操作的选项函数类型

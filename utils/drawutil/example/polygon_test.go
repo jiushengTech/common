@@ -3,11 +3,10 @@ package example
 import (
 	"testing"
 
-	"github.com/jiushengTech/common/utils/draw/colorx"
-
-	"github.com/jiushengTech/common/utils/draw/processor"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygon"
+	"github.com/jiushengTech/common/utils/drawutil/colorx"
+	"github.com/jiushengTech/common/utils/drawutil/processor"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/shape/primitives/polygon"
 )
 
 // TestPolygonWithProcessor 测试使用ImageProcessor绘制多边形

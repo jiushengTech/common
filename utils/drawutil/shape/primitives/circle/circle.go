@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw/colorx"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/colorx"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
 )
 
 // Circle 表示圆形图形

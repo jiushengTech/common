@@ -4,8 +4,8 @@ import (
 	"fmt"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw/colorx"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/colorx"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
 )
 
 // Polygon 表示多边形图形

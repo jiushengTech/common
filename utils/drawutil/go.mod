@@ -1,4 +1,4 @@
-module github.com/jiushengTech/common/utils/draw
+module github.com/jiushengTech/common/utils/drawutil
 
 go 1.24.1
 
@@ -13,3 +13,4 @@ require (
 require github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 
 replace github.com/jiushengTech/common => ../../
+replace github.com/jiushengTech/common/utils/drawutil => ./

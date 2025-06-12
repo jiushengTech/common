@@ -2,12 +2,12 @@ package polygonops
 
 import (
 	"fmt"
-	"github.com/jiushengTech/common/utils/draw/colorx"
-	"github.com/jiushengTech/common/utils/draw/processor"
 	"image/color"
 
 	"github.com/fogleman/gg"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/colorx"
+	"github.com/jiushengTech/common/utils/drawutil/processor"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
 )
 
 // PolygonOperation 表示一个多边形操作

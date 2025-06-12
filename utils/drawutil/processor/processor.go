@@ -13,7 +13,7 @@ import (
 
 	"github.com/jiushengTech/common/utils/fileutil"
 
-	"github.com/jiushengTech/common/utils/draw/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
 
 	"github.com/fogleman/gg"
 )

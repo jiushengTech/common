@@ -3,12 +3,12 @@ package example
 import (
 	"testing"
 
-	"github.com/jiushengTech/common/utils/draw/colorx"
-	"github.com/jiushengTech/common/utils/draw/processor"
-	"github.com/jiushengTech/common/utils/draw/shape/base"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/circle"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/line"
-	"github.com/jiushengTech/common/utils/draw/shape/primitives/polygon"
+	"github.com/jiushengTech/common/utils/drawutil/colorx"
+	"github.com/jiushengTech/common/utils/drawutil/processor"
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
+	"github.com/jiushengTech/common/utils/drawutil/shape/primitives/circle"
+	"github.com/jiushengTech/common/utils/drawutil/shape/primitives/line"
+	"github.com/jiushengTech/common/utils/drawutil/shape/primitives/polygon"
 )
 
 // TestUnifiedShapeInterface 测试统一的图形接口

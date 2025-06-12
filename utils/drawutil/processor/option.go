@@ -1,9 +1,10 @@
 package processor
 
 import (
-	"github.com/jiushengTech/common/utils/draw/shape/base"
 	"path/filepath"
 	"strings"
+
+	"github.com/jiushengTech/common/utils/drawutil/shape/base"
 )
 
 // Option 是图像设置的函数选项接口
