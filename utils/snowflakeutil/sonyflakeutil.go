@@ -19,7 +19,7 @@ func InitSnowflake() {
 	sf = s
 }
 
-// InitSnowflake deprecated plz use idutil.GetId
+// GetId deprecated plz use idutil.GetId
 func GetId() uint64 {
 	id, err := sf.NextID()
 	if err != nil {
