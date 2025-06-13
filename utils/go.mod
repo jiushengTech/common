@@ -3,11 +3,13 @@ module github.com/jiushengTech/common/utils
 go 1.24.2
 
 require (
-	github.com/jiushengTech/common v0.0.0-20250505175851-7adfce197c0c
+	github.com/fogleman/gg v1.3.0
+	github.com/jiushengTech/common v0.0.0-20250612164816-5959520dd2e2
 	github.com/sony/sonyflake v1.2.1
 	github.com/sony/sonyflake/v2 v2.2.0
 	github.com/tealeg/xlsx v1.0.5
 	go.etcd.io/etcd/client/v3 v3.6.1
+	golang.org/x/image v0.28.0
 	google.golang.org/protobuf v1.36.6
 	gorm.io/gorm v1.30.0
 )
@@ -16,6 +18,7 @@ require (
 	github.com/coreos/go-semver v0.3.1 // indirect
 	github.com/coreos/go-systemd/v22 v22.5.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
+	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0 // indirect
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
