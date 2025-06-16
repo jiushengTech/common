@@ -4,7 +4,7 @@ go 1.24.2
 
 require (
 	github.com/fogleman/gg v1.3.0
-	github.com/jiushengTech/common v0.0.0-20250612164816-5959520dd2e2
+	github.com/jiushengTech/common v0.0.0-20250613100701-6d1864d2f9d0
 	github.com/sony/sonyflake v1.2.1
 	github.com/sony/sonyflake/v2 v2.2.0
 	github.com/tealeg/xlsx v1.0.5
