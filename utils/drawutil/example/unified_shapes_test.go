@@ -49,29 +49,31 @@ func TestUnifiedShapeInterface(t *testing.T) {
 	)
 
 	// 4. 创建垂直线条（黄色，带数值）
-	vertLine := line.New(line.Vertical, 0.8, // 垂直线，文字位置在80%高度
-		base.WithPoints([]*base.Point{
+	vertLine := line.New(
+		line.WithType(line.Vertical),
+		line.WithTextPosition(0.8),
+		line.WithValues([]float64{15.5, 25.8}),
+		line.WithPoints([]*base.Point{
 			{X: 350, Y: 0},
 			{X: 450, Y: 0},
 			{X: 550, Y: 0},
 		}),
-		base.WithColor(colorx.Yellow),
-		base.WithLineWidth(3.0),
+		line.WithColor(colorx.Yellow),
+		line.WithLineWidth(3.0),
 	)
-	// 设置线条值
-	vertLine.SetValues([]float64{15.5, 25.8})
 
 	// 5. 创建水平线条（橙色，带数值）
-	horizLine := line.New(line.Horizontal, 0.2, // 水平线，文字位置在20%宽度
-		base.WithPoints([]*base.Point{
+	horizLine := line.New(
+		line.WithType(line.Horizontal),
+		line.WithTextPosition(0.2),
+		line.WithValues([]float64{12.3}),
+		line.WithPoints([]*base.Point{
 			{X: 0, Y: 450},
 			{X: 0, Y: 550},
 		}),
-		base.WithColor(colorx.Orange),
-		base.WithLineWidth(2.5),
+		line.WithColor(colorx.Orange),
+		line.WithLineWidth(2.5),
 	)
-	// 设置线条值
-	horizLine.SetValues([]float64{12.3})
 
 	// 创建图像处理器并添加所有图形
 	imgProcessor := processor.NewImageProcessor(
@@ -101,22 +103,21 @@ func TestUnifiedInterfaceBenefits(t *testing.T) {
 	t.Log("1. 一致的构造函数模式：")
 	t.Log("   - polygon.New(fill, options...) // 支持三角形、矩形等所有多边形")
 	t.Log("   - circle.New(radius, fill, options...)")
-	t.Log("   - line.New(type, textPosition, options...)")
+	t.Log("   - line.New(options...) // 优雅的单一可变参数")
 
 	t.Log("2. 统一的选项系统：")
-	t.Log("   - 所有图形都使用 base.Option")
-	t.Log("   - base.WithPoints() 设置坐标点")
-	t.Log("   - base.WithColor() 设置颜色")
-	t.Log("   - base.WithLineWidth() 设置线宽")
+	t.Log("   - 所有图形都有统一的选项模式")
+	t.Log("   - line包内所有选项都使用line.WithXxx()函数")
+	t.Log("   - 基础选项和特有选项完全封装")
 
-	t.Log("3. 简化的代码结构：")
-	t.Log("   - 删除了所有重复的选项适配器")
-	t.Log("   - 删除了复杂的多重构造函数")
-	t.Log("   - 统一的参数传递方式")
+	t.Log("3. 简洁优雅的API：")
+	t.Log("   - line.New(line.WithType(), line.WithColor(), ...)")
+	t.Log("   - 选项顺序任意，灵活组合")
+	t.Log("   - 单一入参，统一体验")
 	t.Log("   - 矩形作为多边形的特例，减少了冗余代码")
 
 	t.Log("4. 易于维护和扩展：")
-	t.Log("   - 新增通用选项只需在 base 包中添加")
-	t.Log("   - 图形特有属性作为构造函数参数")
-	t.Log("   - 清晰的职责分离")
+	t.Log("   - 新增选项只需在对应包中添加WithXxx函数")
+	t.Log("   - 每个包管理自己的选项，职责清晰")
+	t.Log("   - 类型安全，编译时检查")
 }

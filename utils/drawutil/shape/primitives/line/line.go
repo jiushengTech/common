@@ -22,14 +22,18 @@ const (
 // Line 表示线条图形
 type Line struct {
 	base.BaseShape
-	Type         Type      `json:"line_type"`     // 线条类型
-	Values       []float64 `json:"values"`        // 点之间的值（长度比点少1）
-	TextPosition float64   `json:"text_position"` // 文本位置(0-1之间的值，表示在两条线之间的位置比例)
+	LineOptions
 }
 
 // New 创建一条线
-// lineType 线条类型，textPosition 文本位置(0-1之间)
-func New(lineType Type, textPosition float64, options ...base.Option) *Line {
+func New(options ...LineOption) *Line {
+	// 默认配置
+	lineOpts := LineOptions{
+		Type:         Vertical,
+		Values:       []float64{},
+		TextPosition: 0.5,
+	}
+
 	line := &Line{
 		BaseShape: base.BaseShape{
 			ShapeType: "line",
@@ -37,23 +41,18 @@ func New(lineType Type, textPosition float64, options ...base.Option) *Line {
 			Color:     colorx.Yellow,
 			LineWidth: 2.0,
 		},
-		Type:         lineType,
-		Values:       []float64{},
-		TextPosition: textPosition,
+		LineOptions: lineOpts,
 	}
 
 	// 应用所有选项
-	base.ApplyOptions(&line.BaseShape, options...)
+	for _, opt := range options {
+		opt(&line.LineOptions, &line.BaseShape)
+	}
 
 	// 根据线条类型对点进行排序
 	line.sortPoints()
 
 	return line
-}
-
-// SetValues 设置线条的值集合
-func (l *Line) SetValues(values []float64) {
-	l.Values = values
 }
 
 // sortPoints 根据线条类型对点进行排序
