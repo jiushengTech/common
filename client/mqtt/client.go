@@ -12,6 +12,7 @@ type Client struct {
 }
 
 func NewClient(opts *mqtt.ClientOptions) *Client {
+	klog.Init()
 	srv := &Client{
 		Client:        mqtt.NewClient(opts),
 		subscriptions: &sync.Map{},

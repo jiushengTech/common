@@ -14,6 +14,7 @@ import (
 	"github.com/jiushengTech/common/broker"
 	"github.com/jiushengTech/common/keepalive"
 	k "github.com/jiushengTech/common/log/klog/logger"
+	klog "github.com/jiushengTech/common/log/klog/logger"
 )
 
 var (
@@ -51,6 +52,7 @@ type Server struct {
 }
 
 func NewServer(opts ...ServerOption) *Server {
+	klog.Init()
 	srv := &Server{
 		baseCtx: context.Background(),
 		started: atomic.Bool{},

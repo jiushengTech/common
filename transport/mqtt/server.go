@@ -39,6 +39,7 @@ type Server struct {
 }
 
 func NewServer(opts ...ServerOption) *Server {
+	klog.Init()
 	srv := &Server{
 		baseCtx:         context.Background(),
 		subscribers:     make(broker.SubscriberMap),

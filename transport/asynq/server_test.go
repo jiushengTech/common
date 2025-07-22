@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/hibiken/asynq"
+	klog "github.com/jiushengTech/common/log/klog/logger"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -195,6 +196,7 @@ func TestPeriodicTask(t *testing.T) {
 }
 
 func TestTaskSubscribe(t *testing.T) {
+	klog.Init()
 	interrupt := make(chan os.Signal, 1)
 	signal.Notify(interrupt, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
