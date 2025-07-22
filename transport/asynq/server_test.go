@@ -3,6 +3,7 @@ package asynq
 import (
 	"context"
 	"fmt"
+	k "github.com/jiushengTech/common/log/klog/logger"
 	"os"
 	"os/signal"
 	"syscall"
@@ -27,17 +28,17 @@ type TaskPayload struct {
 }
 
 func handleTask1(taskType string, taskData *TaskPayload) error {
-	LogInfof("[%s] Task Type: [%s], Payload: [%s]", time.Now().Format("2006-01-02 15:04:05"), taskType, taskData.Message)
+	k.Log.Infof("[%s] Task Type: [%s], Payload: [%s]", time.Now().Format("2006-01-02 15:04:05"), taskType, taskData.Message)
 	return nil
 }
 
 func handleDelayTask(taskType string, taskData *TaskPayload) error {
-	LogInfof("[%s] Delay Task Type: [%s], Payload: [%s]", time.Now().Format("2006-01-02 15:04:05"), taskType, taskData.Message)
+	k.Log.Infof("[%s] Delay Task Type: [%s], Payload: [%s]", time.Now().Format("2006-01-02 15:04:05"), taskType, taskData.Message)
 	return nil
 }
 
 func handlePeriodicTask(taskType string, taskData *TaskPayload) error {
-	LogInfof("[%s] Periodic Task Type: [%s], Payload: [%s]", time.Now().Format("2006-01-02 15:04:05"), taskType, taskData.Message)
+	k.Log.Infof("[%s] Periodic Task Type: [%s], Payload: [%s]", time.Now().Format("2006-01-02 15:04:05"), taskType, taskData.Message)
 	return nil
 }
 

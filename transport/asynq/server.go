@@ -127,7 +127,7 @@ func RegisterSubscriber[T any](srv *Server, taskType string, handler func(string
 			case *T:
 				return handler(taskType, t)
 			default:
-				k.Log.Errorf("invalid payload struct type:", t)
+				k.Log.Error("invalid payload struct type:", t)
 				return errors.New("invalid payload struct type")
 			}
 		},
