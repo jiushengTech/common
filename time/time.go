@@ -4,7 +4,6 @@ import (
 	"database/sql/driver"
 	"encoding/json"
 	"fmt"
-	log "github.com/jiushengTech/common/log/zap/logger"
 	"time"
 	"unicode"
 )
@@ -92,8 +91,6 @@ func (t *LocalTime) UnmarshalJSON(data []byte) error {
 	// 截取固定长度的字符串
 	const layoutLength = 19
 	if len(cleanedStr) < layoutLength {
-		// 打印错误信息并将时间设置为空
-		log.Info("Invalid time string format")
 		*t = LocalTime(time.Time{})
 		return nil
 	}
