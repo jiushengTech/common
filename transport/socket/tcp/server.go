@@ -1,4 +1,4 @@
-package socket
+package tcp
 
 import (
 	"context"
@@ -8,26 +8,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jiushengTech/common/transport/socket"
+
 	"github.com/go-kratos/kratos/v2/transport"
 )
 
-// TCPServerConfig TCP服务器配置
-type TCPServerConfig struct {
-	Network      string
-	Address      string
-	TargetAddrs  []string
-	Timeout      time.Duration
-	KeepAlive    time.Duration
-	ReadTimeout  time.Duration
-	WriteTimeout time.Duration
-	BufferSize   int
-	MaxRetries   int
-}
-
-// TCPServer TCP服务器实现
-type TCPServer struct {
+// Server TCP服务器实现
+type Server struct {
 	mu          sync.RWMutex
-	config      *TCPServerConfig
+	config      *Config
 	closed      bool
 	closedChan  chan struct{}
 	tcpListener *net.TCPListener
@@ -35,13 +24,13 @@ type TCPServer struct {
 }
 
 var (
-	_ transport.Server     = (*TCPServer)(nil)
-	_ transport.Endpointer = (*TCPServer)(nil)
+	_ transport.Server     = (*Server)(nil)
+	_ transport.Endpointer = (*Server)(nil)
 )
 
-// NewTCPServer 创建TCP服务器
-func NewTCPServer(opts ...TCPOption) *TCPServer {
-	config := &TCPServerConfig{
+// NewServer 创建TCP服务器
+func NewServer(opts ...Option) *Server {
+	config := &Config{
 		Network:    "tcp",
 		Timeout:    30 * time.Second,
 		KeepAlive:  30 * time.Second,
@@ -53,13 +42,13 @@ func NewTCPServer(opts ...TCPOption) *TCPServer {
 		opt(config)
 	}
 
-	return &TCPServer{
+	return &Server{
 		config:     config,
 		closedChan: make(chan struct{}),
 	}
 }
 
-func (s *TCPServer) GetTcpListener() *net.TCPListener {
+func (s *Server) GetTcpListener() *net.TCPListener {
 	for {
 		if s.isStarted {
 			return s.tcpListener
@@ -68,7 +57,7 @@ func (s *TCPServer) GetTcpListener() *net.TCPListener {
 }
 
 // Start 启动TCP服务器
-func (s *TCPServer) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	addr, err := net.ResolveTCPAddr(s.config.Network, s.config.Address)
 	if err != nil {
 		return fmt.Errorf("解析 TCP 地址失败: %w", err)
@@ -84,12 +73,12 @@ func (s *TCPServer) Start(ctx context.Context) error {
 }
 
 // Stop 停止TCP服务器
-func (s *TCPServer) Stop(ctx context.Context) error {
+func (s *Server) Stop(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.closed {
-		fmt.Println("TCPServer 已经关闭，无需重复 Stop")
+		fmt.Println("TCP Server 已经关闭，无需重复 Stop")
 		return nil
 	}
 
@@ -106,7 +95,7 @@ func (s *TCPServer) Stop(ctx context.Context) error {
 }
 
 // Endpoint 返回服务器端点
-func (s *TCPServer) Endpoint() (*url.URL, error) {
+func (s *Server) Endpoint() (*url.URL, error) {
 	if s.tcpListener != nil {
 		addr := s.tcpListener.Addr().String()
 		return url.Parse("tcp://" + addr)
@@ -115,12 +104,12 @@ func (s *TCPServer) Endpoint() (*url.URL, error) {
 }
 
 // SendTo 向指定目标发送TCP数据
-func (s *TCPServer) SendTo(targetAddr string, data []byte) (int, error) {
+func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.closed {
-		return 0, ErrServerClosed
+		return 0, socket.ErrServerClosed
 	}
 
 	conn, err := s.createTCPConnection(targetAddr)
@@ -133,12 +122,12 @@ func (s *TCPServer) SendTo(targetAddr string, data []byte) (int, error) {
 }
 
 // Broadcast 向所有目标广播TCP数据
-func (s *TCPServer) Broadcast(data []byte) (int, error) {
+func (s *Server) Broadcast(data []byte) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.closed {
-		return 0, ErrServerClosed
+		return 0, socket.ErrServerClosed
 	}
 
 	if len(s.config.TargetAddrs) == 0 {
@@ -168,7 +157,7 @@ func (s *TCPServer) Broadcast(data []byte) (int, error) {
 }
 
 // createTCPConnection 创建TCP连接
-func (s *TCPServer) createTCPConnection(targetAddr string) (*net.TCPConn, error) {
+func (s *Server) createTCPConnection(targetAddr string) (*net.TCPConn, error) {
 	raddr, err := net.ResolveTCPAddr("tcp", targetAddr)
 	if err != nil {
 		return nil, fmt.Errorf("解析TCP地址失败: %w", err)
@@ -214,7 +203,7 @@ func (s *TCPServer) createTCPConnection(targetAddr string) (*net.TCPConn, error)
 }
 
 // writeWithRetry 带重试的写入
-func (s *TCPServer) writeWithRetry(conn *net.TCPConn, data []byte) (int, error) {
+func (s *Server) writeWithRetry(conn *net.TCPConn, data []byte) (int, error) {
 	var lastErr error
 
 	for i := 0; i <= s.config.MaxRetries; i++ {
@@ -230,61 +219,4 @@ func (s *TCPServer) writeWithRetry(conn *net.TCPConn, data []byte) (int, error) 
 	}
 
 	return 0, fmt.Errorf("TCP写入重试%d次后失败: %w", s.config.MaxRetries, lastErr)
-}
-
-// TCPOption TCP配置选项
-type TCPOption func(*TCPServerConfig)
-
-func WithTCPNetwork(network string) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.Network = network
-	}
-}
-
-func WithTCPAddress(addr string) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.Address = addr
-	}
-}
-
-func WithTCPTargetAddrs(addrs []string) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.TargetAddrs = addrs
-	}
-}
-
-func WithTCPTimeout(timeout time.Duration) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.Timeout = timeout
-	}
-}
-
-func WithTCPKeepAlive(keepAlive time.Duration) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.KeepAlive = keepAlive
-	}
-}
-
-func WithTCPReadTimeout(timeout time.Duration) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.ReadTimeout = timeout
-	}
-}
-
-func WithTCPWriteTimeout(timeout time.Duration) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.WriteTimeout = timeout
-	}
-}
-
-func WithTCPBufferSize(size int) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.BufferSize = size
-	}
-}
-
-func WithTCPMaxRetries(retries int) TCPOption {
-	return func(c *TCPServerConfig) {
-		c.MaxRetries = retries
-	}
 }

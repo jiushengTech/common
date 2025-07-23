@@ -1,4 +1,4 @@
-package socket
+package udp
 
 import (
 	"context"
@@ -8,25 +8,15 @@ import (
 	"sync"
 	"time"
 
+	"github.com/jiushengTech/common/transport/socket"
+
 	"github.com/go-kratos/kratos/v2/transport"
 )
 
-// UDPServerConfig UDP服务器配置
-type UDPServerConfig struct {
-	Network         string
-	Address         string
-	TargetAddrs     []string
-	ReadTimeout     time.Duration
-	WriteTimeout    time.Duration
-	BufferSize      int
-	MaxPacketSize   int
-	EnableBroadcast bool
-}
-
-// UDPServer UDP服务器实现
-type UDPServer struct {
+// Server UDP服务器实现
+type Server struct {
 	mu         sync.RWMutex
-	config     *UDPServerConfig
+	config     *Config
 	closed     bool
 	closedChan chan struct{}
 	udpConn    *net.UDPConn
@@ -34,13 +24,13 @@ type UDPServer struct {
 }
 
 var (
-	_ transport.Server     = (*UDPServer)(nil)
-	_ transport.Endpointer = (*UDPServer)(nil)
+	_ transport.Server     = (*Server)(nil)
+	_ transport.Endpointer = (*Server)(nil)
 )
 
-// NewUDPServer 创建UDP服务器
-func NewUDPServer(opts ...UDPOption) *UDPServer {
-	config := &UDPServerConfig{
+// NewServer 创建UDP服务器
+func NewServer(opts ...Option) *Server {
+	config := &Config{
 		Network:         "udp",
 		BufferSize:      4096,
 		MaxPacketSize:   65507, // UDP最大数据包大小
@@ -53,13 +43,13 @@ func NewUDPServer(opts ...UDPOption) *UDPServer {
 		opt(config)
 	}
 
-	return &UDPServer{
+	return &Server{
 		config:     config,
 		closedChan: make(chan struct{}),
 	}
 }
 
-func (s *UDPServer) GetUdpConn() *net.UDPConn {
+func (s *Server) GetUdpConn() *net.UDPConn {
 	for {
 		if s.isStarted {
 			return s.udpConn
@@ -68,7 +58,7 @@ func (s *UDPServer) GetUdpConn() *net.UDPConn {
 }
 
 // Start 启动UDP服务器
-func (s *UDPServer) Start(ctx context.Context) error {
+func (s *Server) Start(ctx context.Context) error {
 	addr, err := net.ResolveUDPAddr(s.config.Network, s.config.Address)
 	if err != nil {
 		return fmt.Errorf("解析 UDP 地址失败: %w", err)
@@ -91,12 +81,12 @@ func (s *UDPServer) Start(ctx context.Context) error {
 }
 
 // Stop 停止UDP服务器
-func (s *UDPServer) Stop(ctx context.Context) error {
+func (s *Server) Stop(ctx context.Context) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
 	if s.closed {
-		fmt.Println("UDPServer 已经关闭，无需重复 Stop")
+		fmt.Println("UDP Server 已经关闭，无需重复 Stop")
 		return nil
 	}
 
@@ -113,7 +103,7 @@ func (s *UDPServer) Stop(ctx context.Context) error {
 }
 
 // Endpoint 返回服务器端点
-func (s *UDPServer) Endpoint() (*url.URL, error) {
+func (s *Server) Endpoint() (*url.URL, error) {
 	if s.udpConn != nil {
 		addr := s.udpConn.LocalAddr().String()
 		return url.Parse("udp://" + addr)
@@ -122,12 +112,12 @@ func (s *UDPServer) Endpoint() (*url.URL, error) {
 }
 
 // SendTo 向指定目标发送UDP数据
-func (s *UDPServer) SendTo(targetAddr string, data []byte) (int, error) {
+func (s *Server) SendTo(targetAddr string, data []byte) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.closed {
-		return 0, ErrServerClosed
+		return 0, socket.ErrServerClosed
 	}
 
 	// 检查数据包大小
@@ -139,12 +129,12 @@ func (s *UDPServer) SendTo(targetAddr string, data []byte) (int, error) {
 }
 
 // Broadcast 向所有目标广播UDP数据
-func (s *UDPServer) Broadcast(data []byte) (int, error) {
+func (s *Server) Broadcast(data []byte) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.closed {
-		return 0, ErrServerClosed
+		return 0, socket.ErrServerClosed
 	}
 
 	if len(s.config.TargetAddrs) == 0 {
@@ -196,12 +186,12 @@ func (s *UDPServer) Broadcast(data []byte) (int, error) {
 }
 
 // MulticastTo 向组播地址发送数据
-func (s *UDPServer) MulticastTo(multicastAddr string, data []byte) (int, error) {
+func (s *Server) MulticastTo(multicastAddr string, data []byte) (int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.closed {
-		return 0, ErrServerClosed
+		return 0, socket.ErrServerClosed
 	}
 
 	if len(data) > s.config.MaxPacketSize {
@@ -212,7 +202,7 @@ func (s *UDPServer) MulticastTo(multicastAddr string, data []byte) (int, error) 
 }
 
 // sendUDPPacket 发送UDP数据包
-func (s *UDPServer) sendUDPPacket(targetAddr string, data []byte) (int, error) {
+func (s *Server) sendUDPPacket(targetAddr string, data []byte) (int, error) {
 	raddr, err := net.ResolveUDPAddr("udp", targetAddr)
 	if err != nil {
 		return 0, fmt.Errorf("解析UDP地址失败: %w", err)
@@ -242,12 +232,12 @@ func (s *UDPServer) sendUDPPacket(targetAddr string, data []byte) (int, error) {
 }
 
 // BatchSendTo 批量发送UDP数据到多个目标（高性能版本）
-func (s *UDPServer) BatchSendTo(targets []string, data []byte) (map[string]int, error) {
+func (s *Server) BatchSendTo(targets []string, data []byte) (map[string]int, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
 	if s.closed {
-		return nil, ErrServerClosed
+		return nil, socket.ErrServerClosed
 	}
 
 	if len(data) > s.config.MaxPacketSize {
@@ -288,55 +278,4 @@ func (s *UDPServer) BatchSendTo(targets []string, data []byte) (map[string]int, 
 	}
 
 	return results, nil
-}
-
-// UDPOption UDP配置选项
-type UDPOption func(*UDPServerConfig)
-
-func WithUDPNetwork(network string) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.Network = network
-	}
-}
-
-func WithUDPAddress(addr string) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.Address = addr
-	}
-}
-
-func WithUDPTargetAddrs(addrs []string) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.TargetAddrs = addrs
-	}
-}
-
-func WithUDPReadTimeout(timeout time.Duration) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.ReadTimeout = timeout
-	}
-}
-
-func WithUDPWriteTimeout(timeout time.Duration) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.WriteTimeout = timeout
-	}
-}
-
-func WithUDPBufferSize(size int) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.BufferSize = size
-	}
-}
-
-func WithUDPMaxPacketSize(size int) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.MaxPacketSize = size
-	}
-}
-
-func WithUDPBroadcast(enable bool) UDPOption {
-	return func(c *UDPServerConfig) {
-		c.EnableBroadcast = enable
-	}
 }
