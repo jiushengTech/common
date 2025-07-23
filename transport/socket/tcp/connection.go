@@ -116,6 +116,20 @@ func (s *Server) handleConnection(ctx context.Context, client *ClientConn) {
 		client.Close()
 	}()
 
+	// 检查是否需要读取客户端数据
+	needDataReading := s.handler != nil && s.handler.OnClientData != nil
+
+	if needDataReading {
+		// 需要读取数据的情况
+		s.handleConnectionWithDataReading(ctx, client)
+	} else {
+		// 不需要读取数据的情况，只维护连接
+		s.handleConnectionWithoutDataReading(ctx, client)
+	}
+}
+
+// handleConnectionWithDataReading 处理需要读取数据的连接
+func (s *Server) handleConnectionWithDataReading(ctx context.Context, client *ClientConn) {
 	// 创建缓冲区用于读取数据
 	bufferSize := s.config.ReadBufferSize
 	if s.config.ReceiveBufferSize > 0 {
@@ -138,28 +152,41 @@ func (s *Server) handleConnection(ctx context.Context, client *ClientConn) {
 		case <-ctx.Done():
 			return
 		case <-ticker.C:
-			// 检查服务器是否还在运行
-			s.mu.RLock()
-			running := s.running
-			s.mu.RUnlock()
-
-			if !running {
-				return
-			}
-
-			// 检查连接是否还活着
-			if !client.IsAlive() {
+			if !s.isServerRunning() || !client.IsAlive() {
 				return
 			}
 		case data := <-dataChan:
-			// 处理接收到的数据
 			s.triggerClientData(client, data)
 		case err := <-errorChan:
-			// 读取错误，连接可能断开
 			s.triggerServerError(fmt.Errorf("客户端 %s 读取错误: %w", client.ID, err))
 			return
 		}
 	}
+}
+
+// handleConnectionWithoutDataReading 处理不需要读取数据的连接
+func (s *Server) handleConnectionWithoutDataReading(ctx context.Context, client *ClientConn) {
+	// 连接保活循环（不读取数据）
+	ticker := time.NewTicker(s.config.CheckInterval)
+	defer ticker.Stop()
+
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if !s.isServerRunning() || !client.IsAlive() {
+				return
+			}
+		}
+	}
+}
+
+// isServerRunning 检查服务器是否还在运行
+func (s *Server) isServerRunning() bool {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+	return s.running
 }
 
 // readClientData 读取客户端数据的协程

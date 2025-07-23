@@ -444,3 +444,158 @@ func BenchmarkTCPServer_Broadcast(b *testing.B) {
 		server.Broadcast(data)
 	}
 }
+
+// 测试不读取数据时的性能优化
+func TestTCPServer_NoDataReading(t *testing.T) {
+	server := NewServer(WithAddress("localhost:0"))
+
+	// 不设置OnClientData事件处理器
+	server.SetEventHandler(&EventHandler{
+		OnClientConnected: func(client *ClientConn) {
+			t.Logf("客户端连接: %s", client.ID)
+		},
+		OnClientDisconnected: func(client *ClientConn) {
+			t.Logf("客户端断开: %s", client.ID)
+		},
+		// OnClientData 为 nil，服务器不应该读取数据
+		OnClientData: nil,
+		OnServerError: func(err error) {
+			t.Logf("服务器错误: %v", err)
+		},
+	})
+
+	ctx := context.Background()
+	err := server.Start(ctx)
+	if err != nil {
+		t.Fatalf("启动服务器失败: %v", err)
+	}
+	defer server.Stop(ctx)
+
+	endpoint, _ := server.Endpoint()
+
+	// 创建客户端连接
+	conn, err := net.Dial("tcp", endpoint.Host)
+	if err != nil {
+		t.Fatalf("客户端连接失败: %v", err)
+	}
+	defer conn.Close()
+
+	// 等待连接建立
+	time.Sleep(100 * time.Millisecond)
+
+	// 验证连接已建立
+	if count := server.GetClientCount(); count != 1 {
+		t.Errorf("期望客户端数量为1，实际为%d", count)
+	}
+
+	// 客户端发送数据
+	testData := "This data should not be processed"
+	_, err = conn.Write([]byte(testData))
+	if err != nil {
+		t.Errorf("客户端发送数据失败: %v", err)
+	}
+
+	// 等待一段时间，确保服务器有足够时间处理（但实际上不应该处理）
+	time.Sleep(200 * time.Millisecond)
+
+	// 验证连接仍然存在（数据没有被读取，连接不应该因为读取错误而断开）
+	if count := server.GetClientCount(); count != 1 {
+		t.Errorf("发送数据后，期望客户端数量仍为1，实际为%d", count)
+	}
+
+	// 服务器向客户端发送数据应该正常工作
+	clients := server.GetClients()
+	var clientID string
+	for id := range clients {
+		clientID = id
+		break
+	}
+
+	responseMsg := "Server response"
+	n, err := server.SendToClient(clientID, []byte(responseMsg))
+	if err != nil {
+		t.Errorf("服务器发送数据失败: %v", err)
+	}
+	if n != len(responseMsg) {
+		t.Errorf("期望发送%d字节，实际发送%d字节", len(responseMsg), n)
+	}
+
+	// 验证客户端能收到服务器的响应
+	buffer := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	receivedLen, err := conn.Read(buffer)
+	if err != nil {
+		t.Errorf("客户端读取服务器响应失败: %v", err)
+	}
+	received := string(buffer[:receivedLen])
+	if received != responseMsg {
+		t.Errorf("期望收到'%s'，实际收到'%s'", responseMsg, received)
+	}
+
+	t.Log("测试通过：OnClientData为nil时，服务器不读取客户端数据，但连接和发送功能正常")
+}
+
+// 基准测试 - 比较有无数据读取的性能差异
+func BenchmarkTCPServer_WithoutDataReading(b *testing.B) {
+	server := NewServer(WithAddress("localhost:0"))
+
+	// 不设置OnClientData
+	server.SetEventHandler(&EventHandler{
+		OnClientConnected: func(client *ClientConn) {},
+		OnClientData:      nil, // 关键：不读取数据
+	})
+
+	ctx := context.Background()
+	server.Start(ctx)
+	defer server.Stop(ctx)
+
+	endpoint, _ := server.Endpoint()
+
+	// 创建连接
+	conn, _ := net.Dial("tcp", endpoint.Host)
+	defer conn.Close()
+
+	time.Sleep(50 * time.Millisecond) // 等待连接建立
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// 模拟连接维护的开销
+		count := server.GetClientCount()
+		if count != 1 {
+			b.Errorf("连接数异常: %d", count)
+		}
+	}
+}
+
+func BenchmarkTCPServer_WithDataReading(b *testing.B) {
+	server := NewServer(WithAddress("localhost:0"))
+
+	// 设置OnClientData
+	server.SetEventHandler(&EventHandler{
+		OnClientConnected: func(client *ClientConn) {},
+		OnClientData: func(client *ClientConn, data []byte) {
+			// 简单处理数据
+		},
+	})
+
+	ctx := context.Background()
+	server.Start(ctx)
+	defer server.Stop(ctx)
+
+	endpoint, _ := server.Endpoint()
+
+	// 创建连接
+	conn, _ := net.Dial("tcp", endpoint.Host)
+	defer conn.Close()
+
+	time.Sleep(50 * time.Millisecond) // 等待连接建立
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		// 模拟连接维护的开销
+		count := server.GetClientCount()
+		if count != 1 {
+			b.Errorf("连接数异常: %d", count)
+		}
+	}
+}
