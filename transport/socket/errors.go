@@ -18,8 +18,6 @@ var (
 	ErrWriteFailed = errors.New("socket: 写入失败")
 	// ErrReadFailed 读取失败
 	ErrReadFailed = errors.New("socket: 读取失败")
-	// ErrPoolExhausted 连接池耗尽
-	ErrPoolExhausted = errors.New("socket: 连接池已耗尽")
 )
 
 // NetworkError 网络错误
