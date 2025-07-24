@@ -146,21 +146,34 @@ func getZapCores(c *conf.ZapConf) []zapcore.Core {
 	cores := make([]zapcore.Core, 0, 2)
 	minLevel := TransportLevel(c.Level)
 
-	// 创建一个统一的级别过滤函数，支持所有级别
-	levelFunc := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
-		return level >= minLevel
-	})
+	// 为每个级别创建单独的Core，提高性能
+	levels := []zapcore.Level{
+		zapcore.DebugLevel,
+		zapcore.InfoLevel,
+		zapcore.WarnLevel,
+		zapcore.ErrorLevel,
+		zapcore.DPanicLevel,
+		zapcore.PanicLevel,
+		zapcore.FatalLevel,
+	}
 
-	// 添加文件输出Core - 使用统一的写入器管理所有级别
-	fileCore := zapcore.NewCore(
-		GetEncoder(c, false),
-		GetWriteSyncer(c, ""), // 传空字符串，让WriteSyncer内部处理级别分离
-		levelFunc,
-	)
-	cores = append(cores, fileCore)
+	for _, level := range levels {
+		if level >= minLevel {
+			// 为每个级别创建单独的文件Core
+			fileCore := zapcore.NewCore(
+				GetEncoder(c, false),
+				GetWriteSyncer(c, level.String()),
+				GetLevelPriority(level),
+			)
+			cores = append(cores, fileCore)
+		}
+	}
 
 	// 如果需要控制台输出，添加控制台Core
 	if c.LogInConsole {
+		levelFunc := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
+			return level >= minLevel
+		})
 		consoleCore := createConsoleCore(c, levelFunc)
 		cores = append(cores, consoleCore)
 	}
@@ -189,12 +202,7 @@ func GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
 		panic(fmt.Sprintf("创建日志目录失败: %v", err))
 	}
 
-	// 如果 level 为空，表示需要创建多级别写入器
-	if level == "" {
-		return createMultiLevelWriteSyncer(c, logPath)
-	}
-
-	// 单级别写入器（保持向后兼容）
+	// 创建级别目录
 	levelDir := filepath.Join(logPath, level)
 	if err := os.MkdirAll(levelDir, os.ModePerm); err != nil {
 		panic(fmt.Sprintf("创建日志级别目录失败: %v", err))
@@ -202,24 +210,6 @@ func GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
 
 	writer := NewTimeRotationWriter(c, level, levelDir)
 	return zapcore.AddSync(writer)
-}
-
-// createMultiLevelWriteSyncer 创建支持多级别的写入器
-func createMultiLevelWriteSyncer(c *conf.ZapConf, logPath string) zapcore.WriteSyncer {
-	levels := []string{"debug", "info", "warn", "error", "dpanic", "panic", "fatal"}
-	writers := make([]zapcore.WriteSyncer, 0, len(levels))
-
-	for _, level := range levels {
-		levelDir := filepath.Join(logPath, level)
-		if err := os.MkdirAll(levelDir, os.ModePerm); err != nil {
-			panic(fmt.Sprintf("创建日志级别目录失败: %v", err))
-		}
-		writer := NewTimeRotationWriter(c, level, levelDir)
-		writers = append(writers, zapcore.AddSync(writer))
-	}
-
-	// 使用 zapcore.NewMultiWriteSyncer 合并多个写入器
-	return zapcore.NewMultiWriteSyncer(writers...)
 }
 
 // GetLevelPriority 根据日志级别创建级别筛选函数
