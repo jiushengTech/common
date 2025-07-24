@@ -2,17 +2,50 @@ package zap
 
 import (
 	"fmt"
-	"github.com/jiushengTech/common/log/zap/conf"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"os"
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/jiushengTech/common/log/zap/conf"
+	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
+)
+
+// 默认配置常量
+const (
+	DefaultLogDir      = "logs"
+	DefaultLogLevel    = "info"
+	DefaultLogFormat   = "console"
+	DefaultMaxSize     = 10 // MB
+	DefaultMaxBackups  = 10
+	DefaultMaxAge      = 30 // 天
+	DefaultEncodeLevel = "LowercaseColorLevelEncoder"
+	DefaultStackKey    = "stack"
 )
 
 // NewZapLogger 创建并返回一个 zapLogger 实例
 func NewZapLogger(c *conf.ZapConf) *zap.Logger {
+	// 配置验证
+	if c == nil {
+		panic("ZapConf 配置不能为 nil")
+	}
+	if c.Director == "" {
+		c.Director = DefaultLogDir
+	}
+	if c.Level == "" {
+		c.Level = DefaultLogLevel
+	}
+	if c.Format == "" {
+		c.Format = DefaultLogFormat
+	}
+	if c.MaxSize <= 0 {
+		c.MaxSize = DefaultMaxSize
+	}
+	if c.MaxBackups <= 0 {
+		c.MaxBackups = DefaultMaxBackups
+	}
+
 	cores := getZapCores(c)
 	options := []zap.Option{
 		zap.AddStacktrace(zap.NewAtomicLevelAt(zapcore.ErrorLevel)),
@@ -110,34 +143,29 @@ func CustomTimeEncoder(t time.Time, encoder zapcore.PrimitiveArrayEncoder) {
 
 // getZapCores 获取所有zap核心组件
 func getZapCores(c *conf.ZapConf) []zapcore.Core {
-	cores := make([]zapcore.Core, 0, 7)
+	cores := make([]zapcore.Core, 0, 2)
 	minLevel := TransportLevel(c.Level)
 
-	// 为每个级别创建Core
-	for level := minLevel; level <= zapcore.FatalLevel; level++ {
-		levelFunc := GetLevelPriority(level)
+	// 创建一个统一的级别过滤函数，支持所有级别
+	levelFunc := zap.LevelEnablerFunc(func(level zapcore.Level) bool {
+		return level >= minLevel
+	})
 
-		// 添加文件输出Core
-		fileCore := createFileCore(c, level, levelFunc)
-		cores = append(cores, fileCore)
+	// 添加文件输出Core - 使用统一的写入器管理所有级别
+	fileCore := zapcore.NewCore(
+		GetEncoder(c, false),
+		GetWriteSyncer(c, ""), // 传空字符串，让WriteSyncer内部处理级别分离
+		levelFunc,
+	)
+	cores = append(cores, fileCore)
 
-		// 如果需要控制台输出，添加控制台Core
-		if c.LogInConsole {
-			consoleCore := createConsoleCore(c, levelFunc)
-			cores = append(cores, consoleCore)
-		}
+	// 如果需要控制台输出，添加控制台Core
+	if c.LogInConsole {
+		consoleCore := createConsoleCore(c, levelFunc)
+		cores = append(cores, consoleCore)
 	}
 
 	return cores
-}
-
-// createFileCore 创建文件输出的Core
-func createFileCore(c *conf.ZapConf, level zapcore.Level, levelFunc zap.LevelEnablerFunc) zapcore.Core {
-	return zapcore.NewCore(
-		GetEncoder(c, false),
-		GetWriteSyncer(c, level.String()),
-		levelFunc,
-	)
 }
 
 // createConsoleCore 创建控制台输出的Core
@@ -161,16 +189,37 @@ func GetWriteSyncer(c *conf.ZapConf, level string) zapcore.WriteSyncer {
 		panic(fmt.Sprintf("创建日志目录失败: %v", err))
 	}
 
-	// 根据日志级别创建不同的文件夹
+	// 如果 level 为空，表示需要创建多级别写入器
+	if level == "" {
+		return createMultiLevelWriteSyncer(c, logPath)
+	}
+
+	// 单级别写入器（保持向后兼容）
 	levelDir := filepath.Join(logPath, level)
 	if err := os.MkdirAll(levelDir, os.ModePerm); err != nil {
 		panic(fmt.Sprintf("创建日志级别目录失败: %v", err))
 	}
 
-	// 创建支持时间轮转的写入器
 	writer := NewTimeRotationWriter(c, level, levelDir)
-
 	return zapcore.AddSync(writer)
+}
+
+// createMultiLevelWriteSyncer 创建支持多级别的写入器
+func createMultiLevelWriteSyncer(c *conf.ZapConf, logPath string) zapcore.WriteSyncer {
+	levels := []string{"debug", "info", "warn", "error", "dpanic", "panic", "fatal"}
+	writers := make([]zapcore.WriteSyncer, 0, len(levels))
+
+	for _, level := range levels {
+		levelDir := filepath.Join(logPath, level)
+		if err := os.MkdirAll(levelDir, os.ModePerm); err != nil {
+			panic(fmt.Sprintf("创建日志级别目录失败: %v", err))
+		}
+		writer := NewTimeRotationWriter(c, level, levelDir)
+		writers = append(writers, zapcore.AddSync(writer))
+	}
+
+	// 使用 zapcore.NewMultiWriteSyncer 合并多个写入器
+	return zapcore.NewMultiWriteSyncer(writers...)
 }
 
 // GetLevelPriority 根据日志级别创建级别筛选函数

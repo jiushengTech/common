@@ -599,3 +599,126 @@ func BenchmarkTCPServer_WithDataReading(b *testing.B) {
 		}
 	}
 }
+
+// 测试手动读取客户端数据（OnClientData为nil时）
+func TestTCPServer_ManualDataReading(t *testing.T) {
+	server := NewServer(WithAddress("localhost:0"))
+
+	// 不设置OnClientData回调
+	server.SetEventHandler(&EventHandler{
+		OnClientConnected: func(client *ClientConn) {
+			t.Logf("客户端连接: %s", client.ID)
+		},
+		OnClientDisconnected: func(client *ClientConn) {
+			t.Logf("客户端断开: %s", client.ID)
+		},
+		// OnClientData为nil - 服务器不会自动读取数据
+		OnClientData: nil,
+	})
+
+	ctx := context.Background()
+	err := server.Start(ctx)
+	if err != nil {
+		t.Fatalf("启动服务器失败: %v", err)
+	}
+	defer server.Stop(ctx)
+
+	endpoint, _ := server.Endpoint()
+
+	// 创建客户端连接
+	conn, err := net.Dial("tcp", endpoint.Host)
+	if err != nil {
+		t.Fatalf("客户端连接失败: %v", err)
+	}
+	defer conn.Close()
+
+	// 等待连接建立
+	time.Sleep(100 * time.Millisecond)
+
+	// 获取客户端连接对象
+	clients := server.GetClients()
+	if len(clients) != 1 {
+		t.Fatalf("期望1个客户端，实际%d个", len(clients))
+	}
+
+	var clientID string
+	var client *ClientConn
+	for id, c := range clients {
+		clientID = id
+		client = c
+		break
+	}
+
+	// 客户端发送数据
+	testMessage := "Hello from client, please read manually!"
+	_, err = conn.Write([]byte(testMessage))
+	if err != nil {
+		t.Errorf("客户端发送数据失败: %v", err)
+	}
+
+	// 等待数据传输
+	time.Sleep(100 * time.Millisecond)
+
+	// 服务器手动读取客户端数据
+	buffer := make([]byte, 1024)
+
+	// 设置读取超时以避免阻塞
+	client.SetReadDeadline(time.Now().Add(2 * time.Second))
+
+	n, err := client.Read(buffer)
+	if err != nil {
+		t.Errorf("手动读取客户端数据失败: %v", err)
+	}
+
+	receivedData := string(buffer[:n])
+	if receivedData != testMessage {
+		t.Errorf("期望收到'%s'，实际收到'%s'", testMessage, receivedData)
+	}
+
+	t.Logf("成功手动读取到数据: %s", receivedData)
+
+	// 验证可以多次读取
+	secondMessage := "Second message for manual reading"
+	_, err = conn.Write([]byte(secondMessage))
+	if err != nil {
+		t.Errorf("客户端发送第二条数据失败: %v", err)
+	}
+
+	time.Sleep(50 * time.Millisecond)
+
+	// 再次手动读取
+	client.SetReadDeadline(time.Now().Add(2 * time.Second))
+	n, err = client.Read(buffer)
+	if err != nil {
+		t.Errorf("手动读取第二条数据失败: %v", err)
+	}
+
+	receivedData = string(buffer[:n])
+	if receivedData != secondMessage {
+		t.Errorf("期望收到第二条消息'%s'，实际收到'%s'", secondMessage, receivedData)
+	}
+
+	t.Logf("成功手动读取到第二条数据: %s", receivedData)
+
+	// 测试双向通信：服务器发送响应
+	responseMessage := "Server received your messages!"
+	_, err = server.SendToClient(clientID, []byte(responseMessage))
+	if err != nil {
+		t.Errorf("服务器发送响应失败: %v", err)
+	}
+
+	// 客户端验证收到响应
+	clientBuffer := make([]byte, 1024)
+	conn.SetReadDeadline(time.Now().Add(2 * time.Second))
+	n, err = conn.Read(clientBuffer)
+	if err != nil {
+		t.Errorf("客户端读取服务器响应失败: %v", err)
+	}
+
+	response := string(clientBuffer[:n])
+	if response != responseMessage {
+		t.Errorf("期望收到响应'%s'，实际收到'%s'", responseMessage, response)
+	}
+
+	t.Log("测试通过：OnClientData为nil时，可以通过client.Read()手动读取数据，双向通信正常")
+}

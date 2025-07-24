@@ -2,10 +2,12 @@ package zap
 
 import (
 	"fmt"
+	"path/filepath"
+	"sync"
+	"time"
+
 	"github.com/jiushengTech/common/log/zap/conf"
 	"gopkg.in/natefinch/lumberjack.v2"
-	"path/filepath"
-	"time"
 )
 
 const (
@@ -21,10 +23,14 @@ const (
 type TimeRotationInfo struct {
 	CurrentFileName string    // 当前日志文件名
 	NextRotation    time.Time // 下一次轮转时间
+	LastAccessed    time.Time // 最后访问时间，用于清理无用的跟踪器
 }
 
 // 全局映射表，用于跟踪每个日志文件的轮转信息
-var rotationTrackers = make(map[string]*TimeRotationInfo)
+var (
+	rotationTrackers = make(map[string]*TimeRotationInfo)
+	trackerMutex     sync.RWMutex // 保护映射表的并发访问
+)
 
 // TimeRotationHook 实现了io.WriteCloser接口，用于处理时间轮转
 type TimeRotationHook struct {
@@ -38,26 +44,44 @@ type TimeRotationHook struct {
 // Write 写入日志，并检查是否需要轮转
 func (t *TimeRotationHook) Write(p []byte) (n int, err error) {
 	now := time.Now()
-	// 检查是否需要轮转
-	if now.After(t.RotationTracker.NextRotation) {
-		// 关闭旧文件（重要）
-		_ = t.Lumberjack.Close()
-		// 生成新文件名和轮转时间
-		logFileName, nextRotation := generateFileNameAndRotation(now, int(t.Config.TimeRotation), t.Level)
-		logFilePath := filepath.Join(t.LevelDir, logFileName)
-		// 创建新的 lumberjack 实例
-		t.Lumberjack = &lumberjack.Logger{
-			Filename:   logFilePath,
-			MaxSize:    int(t.Config.MaxSize),
-			MaxAge:     int(t.Config.MaxAge),
-			MaxBackups: int(t.Config.MaxBackups),
-			LocalTime:  true,
-			Compress:   t.Config.Compress,
+
+	// 使用读锁检查是否需要轮转
+	trackerMutex.RLock()
+	needsRotation := now.After(t.RotationTracker.NextRotation)
+	trackerMutex.RUnlock()
+
+	if needsRotation {
+		// 获取写锁进行轮转操作
+		trackerMutex.Lock()
+		// 双重检查，避免多个goroutine同时轮转
+		if now.After(t.RotationTracker.NextRotation) {
+			// 关闭旧文件（重要）
+			_ = t.Lumberjack.Close()
+			// 生成新文件名和轮转时间
+			logFileName, nextRotation := generateFileNameAndRotation(now, int(t.Config.TimeRotation), t.Level)
+			logFilePath := filepath.Join(t.LevelDir, logFileName)
+			// 创建新的 lumberjack 实例
+			t.Lumberjack = &lumberjack.Logger{
+				Filename:   logFilePath,
+				MaxSize:    int(t.Config.MaxSize),
+				MaxAge:     int(t.Config.MaxAge),
+				MaxBackups: int(t.Config.MaxBackups),
+				LocalTime:  true,
+				Compress:   t.Config.Compress,
+			}
+			// 更新轮转状态
+			t.RotationTracker.CurrentFileName = logFileName
+			t.RotationTracker.NextRotation = nextRotation
+			t.RotationTracker.LastAccessed = now
 		}
-		// 更新轮转状态
-		t.RotationTracker.CurrentFileName = logFileName
-		t.RotationTracker.NextRotation = nextRotation
+		trackerMutex.Unlock()
+	} else {
+		// 更新最后访问时间
+		trackerMutex.Lock()
+		t.RotationTracker.LastAccessed = now
+		trackerMutex.Unlock()
 	}
+
 	// 正常写入日志
 	return t.Lumberjack.Write(p)
 }
@@ -83,10 +107,18 @@ func NewTimeRotationWriter(c *conf.ZapConf, level, levelDir string) *TimeRotatio
 
 	// 更新或创建轮转跟踪信息
 	trackerKey := levelDir + "-" + level
+
+	trackerMutex.Lock()
+	defer trackerMutex.Unlock()
+
+	// 清理过期的跟踪器（超过24小时未访问）
+	cleanupOldTrackers(now)
+
 	if _, exists := rotationTrackers[trackerKey]; !exists || rotationTrackers[trackerKey].CurrentFileName != logFileName {
 		rotationTrackers[trackerKey] = &TimeRotationInfo{
 			CurrentFileName: logFileName,
 			NextRotation:    nextRotation,
+			LastAccessed:    now,
 		}
 	}
 
@@ -107,6 +139,16 @@ func NewTimeRotationWriter(c *conf.ZapConf, level, levelDir string) *TimeRotatio
 		Config:          c,
 		Level:           level,
 		LevelDir:        levelDir,
+	}
+}
+
+// cleanupOldTrackers 清理超过24小时未访问的跟踪器
+func cleanupOldTrackers(now time.Time) {
+	cutoff := now.Add(-24 * time.Hour)
+	for key, tracker := range rotationTrackers {
+		if tracker.LastAccessed.Before(cutoff) {
+			delete(rotationTrackers, key)
+		}
 	}
 }
 

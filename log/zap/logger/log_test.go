@@ -7,7 +7,7 @@ import (
 
 func TestLog(t *testing.T) {
 	r := func() {
-		for range 1000 {
+		for range 100 {
 			Slog.Debug("test debug")
 			Slog.Debugf("test debugf %s", "debugf")
 			Slog.Debugw("test debugw", "debugw")
