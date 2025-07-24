@@ -8,18 +8,14 @@ import (
 func TestLog(t *testing.T) {
 	r := func() {
 		for range 100 {
-			Slog.Debug("test debug")
+			Log.Debug("test debug")
 			Slog.Debugf("test debugf %s", "debugf")
-			Slog.Debugw("test debugw", "debugw")
-			Slog.Info("test info")
+			Log.Info("test info")
 			Slog.Infof("test infof %s", "infof")
-			Slog.Infow("test infow", "infow")
-			Slog.Warn("test warn")
+			Log.Warn("test warn")
 			Slog.Warnf("test warnf %s", "warnf")
-			Slog.Warnw("test warnw", "warnw")
-			Slog.Error("test error")
+			Log.Error("test error")
 			Slog.Errorf("test errorf %s", "errorf")
-			Slog.Errorw("test errorw", "errorw")
 		}
 	}
 	group := sync.WaitGroup{}

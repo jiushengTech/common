@@ -1,28 +1,16 @@
 # Zap 日志配置
 zapConf:
-  # 环境
-  model: dev
-  # 日志级别，可以是 debug、info、warn、error、dpanic、panic、fatal
-  level: debug
-  # 日志输出格式，可以是 console 或 json
-  format: console
-  # 日志文件目录
-  director: logs/
-  # 日志级别编码格式，
-  encodeLevel: LowercaseColorLevelEncoder
-  # 堆栈跟踪的键名
-  stacktraceKey: stack
-  # 日志文件最大存活时间，单位为天，0 表示无限制
-  maxAge: 0  # 最大保留天数，0为永久保存
-  # 是否在日志输出中显示源码行信息
-  showLine: true
-  # 是否同时在控制台输出日志
-  logInConsole: true
-  # 单个日志文件的最大大小，单位为 MB
-  maxSize: 10
-  # 是否启用压缩
-  compress: false
-  # 最多保留的日志备份文件数量
-  maxBackups: 10
-  # 时间轮转类型: "0:minute", "1:hour" 或 "2:day"
-  timeRotation: hour
+  model: dev                      # 开发模式配置
+  level: debug                   # 日志级别设置为 debug
+  format: console                # 日志输出格式（console 或 json）
+  director: logs                 # 日志文件存储目录
+  encodeLevel: LowercaseColorLevelEncoder  # 彩色小写日志级别
+  stacktraceKey: stack           # 堆栈跟踪信息键
+  maxAge: 0                      # 保留旧日志的最大天数（0 表示无限制）
+  addCaller: true                # 显示调用日志的位置
+  addCallerSkip: 2              # 跳过调用栈的行数
+  logInConsole: true            # 控制台输出日志
+  maxSize: 10                   # 单个日志文件最大大小（MB）
+  compress: true                # 是否压缩旧日志
+  maxBackups: 10                # 保留旧日志数量
+  timeRotation: 1               # 时间轮转类型（0: 分钟，1: 小时，2: 天）
