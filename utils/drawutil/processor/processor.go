@@ -138,7 +138,7 @@ func (p *ImageProcessor) loadImage() (image.Image, error) {
 			return nil, fmt.Errorf("下载图片失败: %w", err)
 		}
 		// 在函数结束时清理临时文件
-		defer fileutil.CleanUp(imagePath)
+		defer fileutil.CleanUp(imagePath, false)
 	}
 
 	// 加载图片
