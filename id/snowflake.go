@@ -1,6 +1,7 @@
 package id
 
 import (
+	"strconv"
 	"time"
 
 	"github.com/sony/sonyflake/v2"
@@ -48,4 +49,9 @@ func (s *Snowflake) Int64() int64 {
 
 	// 最终失败返回0
 	return 0
+}
+
+// String 获取一个 string 类型的唯一 ID，失败返回空字符串
+func (s *Snowflake) String() string {
+	return strconv.FormatInt(s.Int64(), 10)
 }
