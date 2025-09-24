@@ -1,8 +1,0 @@
-type Hygrothermograph {
-    humidity: Float!
-    temperature: Float!
-}
-
-type Query {
-    hygrothermograph: Hygrothermograph!
-}

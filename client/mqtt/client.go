@@ -1,9 +1,10 @@
 package mqtt
 
 import (
+	"sync"
+
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	klog "github.com/jiushengTech/common/log/klog/logger"
-	"sync"
 )
 
 type Client struct {

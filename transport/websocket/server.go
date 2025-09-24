@@ -2,10 +2,11 @@ package websocket
 
 import (
 	"context"
-	"github.com/go-kratos/kratos/v2/transport"
-	"github.com/gorilla/websocket"
 	"net/http"
 	"net/url"
+
+	"github.com/go-kratos/kratos/v2/transport"
+	"github.com/gorilla/websocket"
 )
 
 var (
