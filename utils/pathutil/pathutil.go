@@ -3,7 +3,6 @@ package pathutil
 import (
 	"path/filepath"
 	"runtime"
-	"strings"
 	"time"
 )
 
@@ -16,10 +15,9 @@ func GetCurrentPath() string {
 }
 
 func GetCurrentDateOnlyAsDir(path string) string {
-	trim := strings.Trim(path, "/")
 	format := time.Now().Format(time.DateOnly)
-	if trim == "" {
+	if path == "" {
 		return format
 	}
-	return path + "/" + format
+	return filepath.Join(path, format)
 }
