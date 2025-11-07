@@ -102,6 +102,7 @@ func (t *LocalTime) UnmarshalJSON(data []byte) error {
 	*t = LocalTime(parseTime)
 	return nil
 }
+
 // NewLocalTimeFromString 根据字符串创建 LocalTime 对象。
 // 支持空字符串或 "0"，这类输入会返回零值 LocalTime。
 func NewLocalTimeFromString(s string) (LocalTime, error) {
@@ -114,4 +115,18 @@ func NewLocalTimeFromString(s string) (LocalTime, error) {
 		return LocalTime{}, fmt.Errorf("invalid time format: %s (expect '2006-01-02 15:04:05')", s)
 	}
 	return LocalTime(t), nil
+}
+func MustLocalTimeFromString(s string) LocalTime {
+	t, err := NewLocalTimeFromString(s)
+	if err != nil {
+		// 返回零值 LocalTime，而不是 panic
+		return LocalTime(time.Time{})
+	}
+	return t
+}
+func (t *LocalTime) IsZero() bool {
+	if t == nil {
+		return true
+	}
+	return time.Time(*t).IsZero()
 }
